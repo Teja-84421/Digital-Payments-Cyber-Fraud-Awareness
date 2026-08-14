@@ -1,7 +1,149 @@
 /* =====================
+   VIDEO RESOURCES (per-language: channel + content match the selected language)
+   ===================== */
+
+// Each video's `id` is the YouTube video ID, `cat` matches the filter tabs
+// (upi | fraud | awareness), and title/desc are in the video's own language
+// since these are genuinely different videos per language, not translations
+// of the same video.
+const videoData = {
+  en: [
+    {
+      id: "UasqK0JA6co", cat: "upi",
+      title: "UPI Fraud Awareness — NPCI Official",
+      desc: "An official awareness initiative by NPCI educating users on the types of UPI frauds and how to easily avoid them."
+    },
+    {
+      id: "vBH4nrJtKiI", cat: "upi",
+      title: "Cyber Awareness on UPI Frauds",
+      desc: "Learn the most common UPI scam tricks including fake collect requests, QR scams, and social engineering tactics."
+    },
+    {
+      id: "TyzSwiOGz2o", cat: "awareness",
+      title: "Banking Cyber Crimes Exposed",
+      desc: "How cybercriminals target bank accounts using AI and social engineering — and what you must know to stay protected."
+    },
+    {
+      id: "vtbtkab9lcs", cat: "fraud",
+      title: "What Is SIM Swapping?",
+      desc: "How criminals port your mobile number to a new SIM, intercept all OTPs, and drain bank accounts — with tips on prevention."
+    },
+    {
+      id: "H1lmavxI7BU", cat: "fraud",
+      title: "Job Scams — How to Spot & Avoid Them",
+      desc: "Tips to identify fake job postings and AI-powered recruitment scams that trick victims into sending money or sharing credentials."
+    },
+    {
+      id: "fBKSmfOpC6s", cat: "upi",
+      title: "Fake UPI Handle Scams & How to Stay Safe",
+      desc: "A guide on spotting fraudulent UPI handles, validated payment channels, and how to verify before you transact."
+    }
+  ],
+  hi: [
+    {
+      id: "9mBMspGhm3E", cat: "upi",
+      title: "UPI धोखाधड़ी जागरूकता — NPCI आधिकारिक (Hindi)",
+      desc: "NPCI की एक आधिकारिक जागरूकता पहल, जो UPI पर होने वाली धोखाधड़ी के प्रकार और उनसे बचने के आसान तरीके बताती है।"
+    },
+    {
+      id: "FmvrRtlMzFs", cat: "upi",
+      title: "UPI Payment Scam: कैसे हो रही साइबर धोखाधड़ी",
+      desc: "NPCI के हवाले से जानें कि UPI भुगतान में धोखाधड़ी किस तरह होती है और इससे खुद को कैसे सुरक्षित रखें।"
+    },
+    {
+      id: "PdAVQXyn0lg", cat: "awareness",
+      title: "Money मंत्र: स्मार्ट बनें, साइबर ठगी रोकें",
+      desc: "डिजिटल पेमेंट्स के दौर में साइबर फ्रॉड और ऑनलाइन ठगी से बचाव के ज़रूरी तरीकों पर एक विशेष चर्चा।"
+    },
+    {
+      id: "-LZP-sDhWWs", cat: "fraud",
+      title: "Digital Arrest Scam — जागरूकता इंटरव्यू",
+      desc: "डिजिटल अरेस्ट स्कैम सहित आम साइबर धोखाधड़ी की चाल को समझें और खुद को इनसे सुरक्षित रखना सीखें।"
+    },
+    {
+      id: "Otem95T0W3Q", cat: "fraud",
+      title: "Online Scam के नए तरीके जान लो (2026)",
+      desc: "मिस्ड-कॉल हैकिंग और OTP जैसी नई ऑनलाइन ठगी की तकनीकों की जानकारी, साथ ही शिकायत दर्ज करने का सही तरीका।"
+    },
+    {
+      id: "TcM7j4A-LYw", cat: "awareness",
+      title: "आज मेरे साथ Cyber Fraud हो गया — Ajit Anjum",
+      desc: "पत्रकार अजीत अंजुम का निजी अनुभव, जो दिखाता है कि जान-पहचान के भरोसे पर भी धोखाधड़ी हो सकती है।"
+    }
+  ],
+  te: [
+    {
+      id: "9FDk_KJxuJk", cat: "upi",
+      title: "నా కళ్ళ ముందే జరిగింది — Prasad Tech in Telugu",
+      desc: "UPI స్కామ్‌లు, OTP మోసాలు, లోన్ యాప్‌లు మరియు బెట్టింగ్ యాప్‌ల గురించి తెలుగులో వివరణ."
+    },
+    {
+      id: "ZwGT0LeyCAc", cat: "fraud",
+      title: "Digital Arrest Scam Telugu — ఒక్క కాల్‌తో లక్షలు పోతాయి!",
+      desc: "పోలీస్ కాల్ స్కామ్ (డిజిటల్ అరెస్ట్) ఎలా జరుగుతుందో, దీని బారి నుండి ఎలా తప్పించుకోవాలో వివరణ."
+    },
+    {
+      id: "QC0_0mnyygU", cat: "fraud",
+      title: "SIM Swap Fraud — తెలుగులో వివరణ",
+      desc: "సిమ్ కార్డ్ క్లోనింగ్ మరియు స్వాపింగ్ ద్వారా జరిగే మోసాల గురించి పూర్తి వివరణ."
+    },
+    {
+      id: "_lgPcr1V0Ik", cat: "awareness",
+      title: "Latest Scams 2026 — ఆన్‌లైన్ మోసాల పట్ల అప్రమత్తత",
+      desc: "2026లో వస్తున్న కొత్త ఆన్‌లైన్ స్కామ్‌ల గురించి తెలుసుకుని, జాగ్రత్తగా ఎలా ఉండాలో నేర్చుకోండి."
+    },
+    {
+      id: "cpzDdZjGsCw", cat: "fraud",
+      title: "Loan App Scam — యువత తప్పక చూడాల్సిన వీడియో",
+      desc: "నకిలీ లోన్ యాప్‌ల మోసాల గురించి యువత తప్పనిసరిగా తెలుసుకోవాల్సిన ముఖ్యమైన సమాచారం."
+    }
+  ]
+};
+
+// Keeps track of the currently active filter tab across language switches
+let currentVideoFilter = 'all';
+
+function videoTagKey(cat) {
+  if (cat === 'upi') return 'vtab_upi';
+  if (cat === 'fraud') return 'vtab_fraud';
+  return 'vtab_awareness';
+}
+
+function renderVideos(lang) {
+  const grid = document.getElementById('video-grid');
+  if (!grid) return;
+
+  const videos = videoData[lang] || videoData.en;
+  const t = translations[lang] || translations.en;
+
+  grid.innerHTML = videos.map(v => `
+    <div class="video-card" data-cat="${v.cat}">
+      <div class="video-wrap">
+        <iframe src="https://www.youtube.com/embed/${v.id}" title="${v.title.replace(/"/g, '&quot;')}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="video-info">
+        <span class="video-tag">${t[videoTagKey(v.cat)]}</span>
+        <h3>${v.title}</h3>
+        <p>${v.desc}</p>
+      </div>
+    </div>
+  `).join('');
+
+  // Re-apply whichever filter tab was active before the language switch
+  document.querySelectorAll('.video-card').forEach(card => {
+    if (currentVideoFilter === 'all' || card.dataset.cat === currentVideoFilter) {
+      card.classList.remove('hidden');
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+}
+
+/* =====================
    VIDEO FILTER TABS
    ===================== */
 function filterVideos(cat, btn) {
+  currentVideoFilter = cat;
   document.querySelectorAll('.vtab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
   document.querySelectorAll('.video-card').forEach(card => {
@@ -460,6 +602,9 @@ function setLanguage(lang) {
 
   // Reload quiz in new language
   loadQuestion();
+
+  // Reload video resources in new language (different channels/content per language)
+  renderVideos(lang);
 }
 
 // Apply saved language on load
