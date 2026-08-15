@@ -59,6 +59,10 @@ const translations = {
     msg_otp_sent: 'If an account exists for that email, an OTP has been sent.',
     msg_reset_ok: 'Password reset! You can now log in with your new password.',
     msg_register_ok: 'Account created! You can now log in.',
+    pw_weak: 'Weak',
+    pw_fair: 'Fair',
+    pw_good: 'Good',
+    pw_strong: 'Strong',
   },
   hi: {
     tab_login: 'लॉग इन',
@@ -90,6 +94,10 @@ const translations = {
     msg_otp_sent: 'यदि उस ईमेल के लिए कोई खाता मौजूद है, तो एक OTP भेज दिया गया है।',
     msg_reset_ok: 'पासवर्ड रीसेट हो गया! अब आप अपने नए पासवर्ड से लॉग इन कर सकते हैं।',
     msg_register_ok: 'खाता बन गया! अब आप लॉग इन कर सकते हैं।',
+    pw_weak: 'कमज़ोर',
+    pw_fair: 'ठीक-ठाक',
+    pw_good: 'अच्छा',
+    pw_strong: 'मज़बूत',
   },
   te: {
     tab_login: 'లాగిన్',
@@ -121,6 +129,10 @@ const translations = {
     msg_otp_sent: 'ఆ ఇమెయిల్ కోసం ఖాతా ఉంటే, OTP పంపబడింది.',
     msg_reset_ok: 'పాస్‌వర్డ్ రీసెట్ అయింది! ఇప్పుడు మీరు కొత్త పాస్‌వర్డ్‌తో లాగిన్ అవ్వవచ్చు.',
     msg_register_ok: 'ఖాతా సృష్టించబడింది! ఇప్పుడు మీరు లాగిన్ అవ్వవచ్చు.',
+    pw_weak: 'బలహీనం',
+    pw_fair: 'పర్వాలేదు',
+    pw_good: 'మంచిది',
+    pw_strong: 'బలమైనది',
   },
 };
 
@@ -197,6 +209,52 @@ document.querySelectorAll('.pw-toggle').forEach((btn) => {
     btn.classList.toggle('showing', showing);
     btn.textContent = showing ? '🙈' : '👁️';
   });
+});
+
+/* =====================
+   PASSWORD STRENGTH METER (register form)
+   ===================== */
+function scorePassword(pw) {
+  if (!pw) return 0;
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (pw.length >= 12) score++;
+  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+  if (/\d/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  // Common/weak patterns knock the score back down regardless of length.
+  const lower = pw.toLowerCase();
+  const commonPatterns = ['password', '12345678', 'qwerty', 'letmein', 'admin', lower.match(/^(.)\1+$/) ? lower : ''];
+  if (commonPatterns.some((p) => p && lower.includes(p))) {
+    score = Math.min(score, 1);
+  }
+  return Math.min(score, 4);
+}
+
+const strengthMeta = [
+  { key: 'pw_weak', cls: 'weak' },
+  { key: 'pw_weak', cls: 'weak' },
+  { key: 'pw_fair', cls: 'fair' },
+  { key: 'pw_good', cls: 'good' },
+  { key: 'pw_strong', cls: 'strong' },
+];
+
+const registerPasswordInput = document.getElementById('register-password');
+const pwStrengthWrap = document.getElementById('pw-strength');
+const pwStrengthBar = document.getElementById('pw-strength-bar');
+const pwStrengthLabel = document.getElementById('pw-strength-label');
+
+registerPasswordInput.addEventListener('input', () => {
+  const value = registerPasswordInput.value;
+  if (!value) {
+    pwStrengthWrap.hidden = true;
+    return;
+  }
+  pwStrengthWrap.hidden = false;
+  const score = scorePassword(value);
+  const meta = strengthMeta[score];
+  pwStrengthBar.className = `pw-strength-bar ${meta.cls}`;
+  pwStrengthLabel.textContent = translations[currentLang][meta.key];
 });
 
 /* =====================

@@ -5,15 +5,31 @@
 const nodemailer = require('nodemailer');
 
 function getTransporter() {
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    throw new Error(
+      'SMTP is not configured: SMTP_HOST, SMTP_USER, and SMTP_PASS must all be set.'
+    );
+  }
   if (!global.__mailTransporter) {
+    const port = Number(process.env.SMTP_PORT) || 587;
+    // If SMTP_SECURE isn't explicitly set, infer it from the port
+    // (465 = implicit TLS, 587/25 = STARTTLS).
+    const secure =
+      process.env.SMTP_SECURE != null ? process.env.SMTP_SECURE === 'true' : port === 465;
+
     global.__mailTransporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: process.env.SMTP_SECURE === 'true', // true for port 465
+      port,
+      secure,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
+      // Serverless functions have short execution limits — fail fast instead
+      // of hanging until the platform kills the whole request.
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 8000,
     });
   }
   return global.__mailTransporter;

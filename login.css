@@ -127,6 +127,43 @@
 .pw-toggle:hover { opacity: 1; }
 .pw-toggle.showing { opacity: 1; filter: saturate(0.6); }
 
+.pw-strength {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.pw-strength[hidden] { display: none; }
+
+.pw-strength-track {
+  flex: 1;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--surface2);
+  overflow: hidden;
+}
+
+.pw-strength-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: 3px;
+  background: var(--accent2);
+  transition: width 0.25s ease, background 0.25s ease;
+}
+
+.pw-strength-bar.weak { width: 25%; background: var(--accent2); }
+.pw-strength-bar.fair { width: 50%; background: var(--accent3); }
+.pw-strength-bar.good { width: 75%; background: #ffb700; }
+.pw-strength-bar.strong { width: 100%; background: var(--green); }
+
+.pw-strength-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 .auth-submit {
   width: 100%;
   margin-top: 1.6rem;

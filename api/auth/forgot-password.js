@@ -41,12 +41,29 @@ module.exports = async (req, res) => {
     const otpHash = await hashValue(otp);
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    await pool.query(
-      'INSERT INTO password_resets (email, otp_hash, expires_at) VALUES (?, ?, ?)',
-      [normalizedEmail, otpHash, expiresAt]
-    );
+    let insertId;
+    try {
+      const [result] = await pool.query(
+        'INSERT INTO password_resets (email, otp_hash, expires_at) VALUES (?, ?, ?)',
+        [normalizedEmail, otpHash, expiresAt]
+      );
+      insertId = result.insertId;
+    } catch (dbErr) {
+      console.error('forgot-password: failed to store OTP —', dbErr.code || dbErr.message);
+      return res.status(500).json({ error: 'Something went wrong. Please try again later.' });
+    }
 
-    await sendOtpEmail(normalizedEmail, otp, ['en', 'hi', 'te'].includes(lang) ? lang : 'en');
+    try {
+      await sendOtpEmail(normalizedEmail, otp, ['en', 'hi', 'te'].includes(lang) ? lang : 'en');
+    } catch (mailErr) {
+      // Log the real reason (SMTP env vars missing, auth failure, timeout, etc.)
+      // but don't leak it — and clean up the OTP row so a retry isn't blocked by it.
+      console.error('forgot-password: failed to send OTP email —', mailErr.message);
+      if (insertId) {
+        pool.query('DELETE FROM password_resets WHERE id = ?', [insertId]).catch(() => {});
+      }
+      return res.status(500).json({ error: 'Something went wrong. Please try again later.' });
+    }
 
     return res.status(200).json(genericResponse);
   } catch (err) {
