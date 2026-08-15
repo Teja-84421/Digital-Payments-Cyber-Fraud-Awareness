@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — Digital Payments & Cyber Fraud Awareness</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="login.css">
+<link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo" style="text-decoration:none;">⚡ CyberSafe</a>
+  <div class="nav-right">
+    <!-- LANGUAGE TOGGLE -->
+    <div class="lang-switcher">
+      <button class="lang-btn active" id="lang-en" onclick="setLanguage('en')">EN</button>
+      <span class="lang-divider">|</span>
+      <button class="lang-btn" id="lang-hi" onclick="setLanguage('hi')">हिं</button>
+      <span class="lang-divider">|</span>
+      <button class="lang-btn" id="lang-te" onclick="setLanguage('te')">తె</button>
+    </div>
+
+    <!-- THEME TOGGLE -->
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+      <span class="toggle-icon" id="toggle-icon">☀️</span>
+      <div class="toggle-track">
+        <div class="toggle-thumb"></div>
+      </div>
+      <span class="toggle-label" id="toggle-label">Light</span>
+    </button>
+  </div>
+</nav>
+
+<!-- AUTH CARD -->
+<main class="auth-wrap">
+  <div class="auth-card">
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" data-i18n="tab_login">Log In</button>
+      <button class="auth-tab" id="tab-register" data-i18n="tab_register">Create Account</button>
+    </div>
+
+    <div id="form-status" class="form-status" hidden></div>
+
+    <!-- LOGIN VIEW -->
+    <form id="login-view" class="auth-view">
+      <h1 class="auth-title" data-i18n="login_title">Welcome back</h1>
+      <p class="auth-sub" data-i18n="login_sub">Log in with your username or email.</p>
+
+      <label class="field-label" for="login-identifier" data-i18n="label_identifier">Username or Email</label>
+      <input type="text" id="login-identifier" class="field-input" autocomplete="username" required>
+
+      <label class="field-label" for="login-password" data-i18n="label_password">Password</label>
+      <div class="password-field">
+        <input type="password" id="login-password" class="field-input" autocomplete="current-password" required>
+        <button type="button" class="pw-toggle" data-target="login-password" aria-label="Show password">👁️</button>
+      </div>
+
+      <button type="button" class="link-btn forgot-link" id="open-forgot" data-i18n="forgot_link">Forgot password?</button>
+
+      <button type="submit" class="btn btn-primary auth-submit" id="login-submit" data-i18n="login_cta">Log In</button>
+    </form>
+
+    <!-- REGISTER VIEW -->
+    <form id="register-view" class="auth-view" hidden>
+      <h1 class="auth-title" data-i18n="register_title">Create your account</h1>
+      <p class="auth-sub" data-i18n="register_sub">Takes less than a minute.</p>
+
+      <label class="field-label" for="register-username" data-i18n="label_username">Username</label>
+      <input type="text" id="register-username" class="field-input" autocomplete="username" minlength="3" maxlength="20" required>
+      <p class="field-hint" data-i18n="hint_username">3–20 characters: letters, numbers, underscore.</p>
+
+      <label class="field-label" for="register-email" data-i18n="label_email">Email</label>
+      <input type="email" id="register-email" class="field-input" autocomplete="email" required>
+
+      <label class="field-label" for="register-password" data-i18n="label_password">Password</label>
+      <div class="password-field">
+        <input type="password" id="register-password" class="field-input" autocomplete="new-password" minlength="8" required>
+        <button type="button" class="pw-toggle" data-target="register-password" aria-label="Show password">👁️</button>
+      </div>
+      <p class="field-hint" data-i18n="hint_password">At least 8 characters.</p>
+
+      <button type="submit" class="btn btn-primary auth-submit" id="register-submit" data-i18n="register_cta">Create Account</button>
+    </form>
+
+    <!-- FORGOT PASSWORD — STEP 1: EMAIL -->
+    <form id="forgot-email-view" class="auth-view" hidden>
+      <button type="button" class="link-btn back-link" data-back="login" data-i18n="back_link">← Back to login</button>
+      <h1 class="auth-title" data-i18n="forgot_title">Reset your password</h1>
+      <p class="auth-sub" data-i18n="forgot_sub">Enter your registered email. We'll send a one-time code (OTP).</p>
+
+      <label class="field-label" for="forgot-email" data-i18n="label_email">Email</label>
+      <input type="email" id="forgot-email" class="field-input" autocomplete="email" required>
+
+      <button type="submit" class="btn btn-primary auth-submit" id="forgot-submit" data-i18n="send_otp_cta">Send OTP</button>
+    </form>
+
+    <!-- FORGOT PASSWORD — STEP 2: OTP + NEW PASSWORD -->
+    <form id="forgot-reset-view" class="auth-view" hidden>
+      <button type="button" class="link-btn back-link" data-back="forgot-email" data-i18n="back_link">← Back to login</button>
+      <h1 class="auth-title" data-i18n="otp_title">Check your inbox</h1>
+      <p class="auth-sub" id="otp-sent-to" data-i18n="otp_sub">Enter the 6-digit code we sent to your email.</p>
+
+      <label class="field-label" for="otp-code" data-i18n="label_otp">OTP Code</label>
+      <input type="text" id="otp-code" class="field-input otp-input" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code" required>
+
+      <label class="field-label" for="new-password" data-i18n="label_new_password">New Password</label>
+      <div class="password-field">
+        <input type="password" id="new-password" class="field-input" autocomplete="new-password" minlength="8" required>
+        <button type="button" class="pw-toggle" data-target="new-password" aria-label="Show password">👁️</button>
+      </div>
+
+      <button type="submit" class="btn btn-primary auth-submit" id="reset-submit" data-i18n="reset_cta">Reset Password</button>
+      <button type="button" class="link-btn resend-link" id="resend-otp" data-i18n="resend_cta">Resend OTP</button>
+    </form>
+
+  </div>
+</main>
+
+<script src="login.js"></script>
+</body>
+</html>
