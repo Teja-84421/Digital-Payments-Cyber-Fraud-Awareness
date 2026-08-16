@@ -63,6 +63,13 @@ const translations = {
     pw_fair: 'Fair',
     pw_good: 'Good',
     pw_strong: 'Strong',
+    rule_len: 'At least 8 characters',
+    rule_upper: 'At least one uppercase letter (A–Z)',
+    rule_lower: 'At least one lowercase letter (a–z)',
+    rule_number: 'At least one number (0–9)',
+    rule_symbol: 'At least one symbol (!@#$%^&*…)',
+    divider_or: 'OR',
+    google_error: "Couldn't sign in with Google. Please try again.",
   },
   hi: {
     tab_login: 'लॉग इन',
@@ -98,6 +105,13 @@ const translations = {
     pw_fair: 'ठीक-ठाक',
     pw_good: 'अच्छा',
     pw_strong: 'मज़बूत',
+    rule_len: 'कम से कम 8 वर्ण',
+    rule_upper: 'कम से कम एक बड़ा अक्षर (A–Z)',
+    rule_lower: 'कम से कम एक छोटा अक्षर (a–z)',
+    rule_number: 'कम से कम एक अंक (0–9)',
+    rule_symbol: 'कम से कम एक चिह्न (!@#$%^&*…)',
+    divider_or: 'या',
+    google_error: 'Google से साइन इन नहीं हो सका। कृपया पुनः प्रयास करें।',
   },
   te: {
     tab_login: 'లాగిన్',
@@ -133,6 +147,13 @@ const translations = {
     pw_fair: 'పర్వాలేదు',
     pw_good: 'మంచిది',
     pw_strong: 'బలమైనది',
+    rule_len: 'కనీసం 8 అక్షరాలు',
+    rule_upper: 'కనీసం ఒక పెద్ద అక్షరం (A–Z)',
+    rule_lower: 'కనీసం ఒక చిన్న అక్షరం (a–z)',
+    rule_number: 'కనీసం ఒక సంఖ్య (0–9)',
+    rule_symbol: 'కనీసం ఒక చిహ్నం (!@#$%^&*…)',
+    divider_or: 'లేదా',
+    google_error: 'Google తో సైన్ ఇన్ సాధ్యం కాలేదు. దయచేసి మళ్లీ ప్రయత్నించండి.',
   },
 };
 
@@ -213,23 +234,16 @@ document.querySelectorAll('.pw-toggle').forEach((btn) => {
 
 /* =====================
    PASSWORD STRENGTH METER (register form)
+   Mirrors a live checklist of requirements, then derives the segmented
+   strength bar from how many of those checks currently pass.
    ===================== */
-function scorePassword(pw) {
-  if (!pw) return 0;
-  let score = 0;
-  if (pw.length >= 8) score++;
-  if (pw.length >= 12) score++;
-  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
-  if (/\d/.test(pw)) score++;
-  if (/[^A-Za-z0-9]/.test(pw)) score++;
-  // Common/weak patterns knock the score back down regardless of length.
-  const lower = pw.toLowerCase();
-  const commonPatterns = ['password', '12345678', 'qwerty', 'letmein', 'admin', lower.match(/^(.)\1+$/) ? lower : ''];
-  if (commonPatterns.some((p) => p && lower.includes(p))) {
-    score = Math.min(score, 1);
-  }
-  return Math.min(score, 4);
-}
+const PASSWORD_RULES = [
+  { key: 'len', test: (pw) => pw.length >= 8 },
+  { key: 'upper', test: (pw) => /[A-Z]/.test(pw) },
+  { key: 'lower', test: (pw) => /[a-z]/.test(pw) },
+  { key: 'number', test: (pw) => /\d/.test(pw) },
+  { key: 'symbol', test: (pw) => /[^A-Za-z0-9]/.test(pw) },
+];
 
 const strengthMeta = [
   { key: 'pw_weak', cls: 'weak' },
@@ -241,8 +255,9 @@ const strengthMeta = [
 
 const registerPasswordInput = document.getElementById('register-password');
 const pwStrengthWrap = document.getElementById('pw-strength');
-const pwStrengthBar = document.getElementById('pw-strength-bar');
+const pwStrengthSegments = document.getElementById('pw-strength-segments');
 const pwStrengthLabel = document.getElementById('pw-strength-label');
+const pwChecklist = document.getElementById('pw-checklist');
 
 registerPasswordInput.addEventListener('input', () => {
   const value = registerPasswordInput.value;
@@ -251,10 +266,29 @@ registerPasswordInput.addEventListener('input', () => {
     return;
   }
   pwStrengthWrap.hidden = false;
-  const score = scorePassword(value);
+
+  let metCount = 0;
+  PASSWORD_RULES.forEach((rule) => {
+    const li = pwChecklist.querySelector(`li[data-rule="${rule.key}"]`);
+    const passed = rule.test(value);
+    li.classList.toggle('met', passed);
+    li.querySelector('.pw-check-icon').textContent = passed ? '✓' : '○';
+    if (passed) metCount++;
+  });
+
+  // Common/weak patterns cap the score even if individual rules pass.
+  const lower = value.toLowerCase();
+  const isRepeatedChar = /^(.)\1+$/.test(lower);
+  const commonPatterns = ['password', '12345678', 'qwerty', 'letmein', 'admin'];
+  const isCommon = isRepeatedChar || commonPatterns.some((p) => lower.includes(p));
+
+  let score = Math.round((metCount / PASSWORD_RULES.length) * 4);
+  if (isCommon) score = Math.min(score, 1);
+
   const meta = strengthMeta[score];
-  pwStrengthBar.className = `pw-strength-bar ${meta.cls}`;
+  pwStrengthSegments.className = `pw-strength-segments ${meta.cls}`;
   pwStrengthLabel.textContent = translations[currentLang][meta.key];
+  pwStrengthLabel.className = `pw-strength-label ${meta.cls}`;
 });
 
 /* =====================
@@ -379,3 +413,58 @@ document.getElementById('forgot-reset-view').addEventListener('submit', async (e
     setLoading(submitBtn, false);
   }
 });
+
+/* =====================
+   GOOGLE SIGN-IN
+   Uses Google Identity Services (loaded via <script> in login.html).
+   The button renders an ID token ("credential") which we send to our own
+   backend to verify and log the user in — no client secret needed here.
+   ===================== */
+
+// Replace with your own OAuth Client ID from Google Cloud Console
+// (APIs & Services -> Credentials -> Create Credentials -> OAuth client ID
+// -> Application type: Web application). It looks like:
+// "123456789-abc123.apps.googleusercontent.com"
+const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+
+async function handleGoogleCredential(response) {
+  clearStatus();
+  try {
+    await api('/api/auth/google', { credential: response.credential });
+    const params = new URLSearchParams(window.location.search);
+    const redirectTo = params.get('redirect');
+    const safeRedirect = redirectTo && /^[a-zA-Z0-9_-]+\.html$/.test(redirectTo) ? redirectTo : 'index.html';
+    window.location.href = safeRedirect;
+  } catch (err) {
+    showStatus(translations[currentLang].google_error, 'error');
+  }
+}
+
+function initGoogleSignIn() {
+  if (GOOGLE_CLIENT_ID.startsWith('YOUR_GOOGLE_CLIENT_ID')) {
+    // Not configured yet — hide the Google option instead of showing a
+    // broken/non-functional button.
+    document.querySelectorAll('.google-btn-slot, .auth-divider').forEach((el) => {
+      el.style.display = 'none';
+    });
+    return;
+  }
+  if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+    // The GSI script loads with async/defer — retry shortly if it's not ready yet.
+    setTimeout(initGoogleSignIn, 300);
+    return;
+  }
+
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleGoogleCredential,
+  });
+
+  const buttonOptions = { theme: 'outline', size: 'large', width: 320, text: 'continue_with' };
+  const loginSlot = document.getElementById('google-login-btn');
+  const signupSlot = document.getElementById('google-signup-btn');
+  if (loginSlot) google.accounts.id.renderButton(loginSlot, buttonOptions);
+  if (signupSlot) google.accounts.id.renderButton(signupSlot, { ...buttonOptions, text: 'signup_with' });
+}
+
+initGoogleSignIn();

@@ -128,40 +128,93 @@
 .pw-toggle.showing { opacity: 1; filter: saturate(0.6); }
 
 .pw-strength {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
 }
 
 .pw-strength[hidden] { display: none; }
 
-.pw-strength-track {
+.pw-strength-segments {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 0.4rem;
+}
+
+.pw-seg {
   flex: 1;
   height: 5px;
   border-radius: 3px;
   background: var(--surface2);
-  overflow: hidden;
+  transition: background 0.25s ease;
 }
 
-.pw-strength-bar {
-  height: 100%;
-  width: 0%;
-  border-radius: 3px;
-  background: var(--accent2);
-  transition: width 0.25s ease, background 0.25s ease;
-}
-
-.pw-strength-bar.weak { width: 25%; background: var(--accent2); }
-.pw-strength-bar.fair { width: 50%; background: var(--accent3); }
-.pw-strength-bar.good { width: 75%; background: #ffb700; }
-.pw-strength-bar.strong { width: 100%; background: var(--green); }
+.pw-strength-segments.weak .pw-seg:nth-child(1) { background: var(--accent2); }
+.pw-strength-segments.fair .pw-seg:nth-child(-n+2) { background: var(--accent3); }
+.pw-strength-segments.good .pw-seg:nth-child(-n+3) { background: #b8925a; }
+.pw-strength-segments.strong .pw-seg { background: var(--green); }
 
 .pw-strength-label {
   font-family: 'Times New Roman', Times, serif;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
+  font-weight: 700;
   color: var(--muted);
-  white-space: nowrap;
+}
+
+.pw-strength-label.weak { color: var(--accent2); }
+.pw-strength-label.fair { color: var(--accent3); }
+.pw-strength-label.good { color: #b8925a; }
+.pw-strength-label.strong { color: var(--green); }
+
+.pw-checklist {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.pw-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+
+.pw-checklist li.met {
+  color: var(--green);
+}
+
+.pw-check-icon {
+  font-size: 0.7rem;
+  width: 1em;
+  flex-shrink: 0;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 1.25rem 0;
+  color: var(--muted);
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.google-btn-slot {
+  display: flex;
+  justify-content: center;
+  min-height: 40px;
 }
 
 .auth-submit {

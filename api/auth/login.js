@@ -30,6 +30,10 @@ module.exports = async (req, res) => {
     }
 
     const user = rows[0];
+    if (!user.password_hash) {
+      // Account was created via "Continue with Google" and has no password set.
+      return res.status(401).json({ error: 'This account uses Google Sign-In. Please continue with Google, or use "Forgot password?" to set one.' });
+    }
     const passwordMatches = await compareValue(password, user.password_hash);
     if (!passwordMatches) {
       return res.status(401).json({ error: 'Invalid username/email or password.' });

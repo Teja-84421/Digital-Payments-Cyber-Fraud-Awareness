@@ -7,22 +7,17 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="login.css">
 <link rel="stylesheet" href="auth-ui.css">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=3">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png?v=3">
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png?v=3">
+<link rel="icon" type="image/png" href="favicon.png?v=2" sizes="32x32">
+<link rel="icon" href="favicon.ico?v=2" sizes="any">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body data-auth-redirect="index.html">
 
 <!-- NAV -->
 <nav>
   <a href="index.html" class="nav-logo" style="text-decoration:none;">⚡ CyberSafe</a>
-
-  <!-- HAMBURGER (mobile only) -->
-  <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
-    <span></span><span></span><span></span>
-  </button>
-
-  <div class="nav-right" id="nav-menu">
+  <div class="nav-right">
     <!-- LANGUAGE TOGGLE -->
     <div class="lang-switcher">
       <button class="lang-btn active" id="lang-en" onclick="setLanguage('en')">EN</button>
@@ -71,6 +66,9 @@
       <button type="button" class="link-btn forgot-link" id="open-forgot" data-i18n="forgot_link">Forgot password?</button>
 
       <button type="submit" class="btn btn-primary auth-submit" id="login-submit" data-i18n="login_cta">Log In</button>
+
+      <div class="auth-divider"><span data-i18n="divider_or">OR</span></div>
+      <div id="google-login-btn" class="google-btn-slot"></div>
     </form>
 
     <!-- REGISTER VIEW -->
@@ -91,14 +89,26 @@
         <button type="button" class="pw-toggle" data-target="register-password" aria-label="Show password">👁️</button>
       </div>
       <div class="pw-strength" id="pw-strength" hidden>
-        <div class="pw-strength-track">
-          <div class="pw-strength-bar" id="pw-strength-bar"></div>
+        <div class="pw-strength-segments" id="pw-strength-segments">
+          <div class="pw-seg"></div>
+          <div class="pw-seg"></div>
+          <div class="pw-seg"></div>
+          <div class="pw-seg"></div>
         </div>
         <span class="pw-strength-label" id="pw-strength-label"></span>
+        <ul class="pw-checklist" id="pw-checklist">
+          <li data-rule="len"><span class="pw-check-icon">○</span><span data-i18n="rule_len">At least 8 characters</span></li>
+          <li data-rule="upper"><span class="pw-check-icon">○</span><span data-i18n="rule_upper">At least one uppercase letter (A–Z)</span></li>
+          <li data-rule="lower"><span class="pw-check-icon">○</span><span data-i18n="rule_lower">At least one lowercase letter (a–z)</span></li>
+          <li data-rule="number"><span class="pw-check-icon">○</span><span data-i18n="rule_number">At least one number (0–9)</span></li>
+          <li data-rule="symbol"><span class="pw-check-icon">○</span><span data-i18n="rule_symbol">At least one symbol (!@#$%^&*…)</span></li>
+        </ul>
       </div>
-      <p class="field-hint" data-i18n="hint_password">At least 8 characters.</p>
 
       <button type="submit" class="btn btn-primary auth-submit" id="register-submit" data-i18n="register_cta">Create Account</button>
+
+      <div class="auth-divider"><span data-i18n="divider_or">OR</span></div>
+      <div id="google-signup-btn" class="google-btn-slot"></div>
     </form>
 
     <!-- FORGOT PASSWORD — STEP 1: EMAIL -->
