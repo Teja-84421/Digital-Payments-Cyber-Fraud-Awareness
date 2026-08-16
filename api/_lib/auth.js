@@ -27,6 +27,25 @@ function verifyToken(token) {
   }
 }
 
+// Short-lived token used only to carry a verified Google identity from
+// "we checked with Google" to "user finished picking a password" — kept
+// separate from session tokens (different expiry + a `purpose` claim) so
+// one can never be mistaken for or reused as the other.
+const PENDING_SIGNUP_TTL = '15m';
+const PENDING_SIGNUP_PURPOSE = 'google_pending_signup';
+
+function signPendingSignupToken(payload) {
+  return jwt.sign({ ...payload, purpose: PENDING_SIGNUP_PURPOSE }, getJwtSecret(), {
+    expiresIn: PENDING_SIGNUP_TTL,
+  });
+}
+
+function verifyPendingSignupToken(token) {
+  const decoded = verifyToken(token);
+  if (!decoded || decoded.purpose !== PENDING_SIGNUP_PURPOSE) return null;
+  return decoded;
+}
+
 function parseCookies(req) {
   const header = req.headers.cookie;
   const out = {};
@@ -73,6 +92,8 @@ module.exports = {
   COOKIE_NAME,
   signToken,
   verifyToken,
+  signPendingSignupToken,
+  verifyPendingSignupToken,
   parseCookies,
   setAuthCookie,
   clearAuthCookie,

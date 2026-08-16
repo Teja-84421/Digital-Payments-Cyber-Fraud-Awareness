@@ -70,6 +70,9 @@ const translations = {
     rule_symbol: 'At least one symbol (!@#$%^&*…)',
     divider_or: 'OR',
     google_error: "Couldn't sign in with Google. Please try again.",
+    google_complete_title: 'Almost done',
+    google_complete_sub: "We've verified your Google email — set a password to finish creating your account.",
+    google_complete_cta: 'Finish Sign Up',
   },
   hi: {
     tab_login: 'लॉग इन',
@@ -112,6 +115,9 @@ const translations = {
     rule_symbol: 'कम से कम एक चिह्न (!@#$%^&*…)',
     divider_or: 'या',
     google_error: 'Google से साइन इन नहीं हो सका। कृपया पुनः प्रयास करें।',
+    google_complete_title: 'लगभग हो गया',
+    google_complete_sub: 'हमने आपका Google ईमेल सत्यापित कर लिया है — अपना खाता पूरा करने के लिए एक पासवर्ड सेट करें।',
+    google_complete_cta: 'साइन अप पूरा करें',
   },
   te: {
     tab_login: 'లాగిన్',
@@ -154,6 +160,9 @@ const translations = {
     rule_symbol: 'కనీసం ఒక చిహ్నం (!@#$%^&*…)',
     divider_or: 'లేదా',
     google_error: 'Google తో సైన్ ఇన్ సాధ్యం కాలేదు. దయచేసి మళ్లీ ప్రయత్నించండి.',
+    google_complete_title: 'దాదాపు పూర్తయింది',
+    google_complete_sub: 'మేము మీ Google ఇమెయిల్‌ను ధృవీకరించాము — మీ ఖాతాను పూర్తి చేయడానికి పాస్‌వర్డ్ సెట్ చేయండి.',
+    google_complete_cta: 'సైన్ అప్ పూర్తి చేయండి',
   },
 };
 
@@ -184,6 +193,7 @@ const views = {
   register: document.getElementById('register-view'),
   'forgot-email': document.getElementById('forgot-email-view'),
   'forgot-reset': document.getElementById('forgot-reset-view'),
+  'google-complete': document.getElementById('google-complete-view'),
 };
 const tabLogin = document.getElementById('tab-login');
 const tabRegister = document.getElementById('tab-register');
@@ -254,42 +264,56 @@ const strengthMeta = [
 ];
 
 const registerPasswordInput = document.getElementById('register-password');
-const pwStrengthWrap = document.getElementById('pw-strength');
-const pwStrengthSegments = document.getElementById('pw-strength-segments');
-const pwStrengthLabel = document.getElementById('pw-strength-label');
-const pwChecklist = document.getElementById('pw-checklist');
 
-registerPasswordInput.addEventListener('input', () => {
-  const value = registerPasswordInput.value;
-  if (!value) {
-    pwStrengthWrap.hidden = true;
-    return;
-  }
-  pwStrengthWrap.hidden = false;
+function attachPasswordStrengthMeter(passwordInput, wrapEl, segmentsEl, labelEl, checklistEl) {
+  passwordInput.addEventListener('input', () => {
+    const value = passwordInput.value;
+    if (!value) {
+      wrapEl.hidden = true;
+      return;
+    }
+    wrapEl.hidden = false;
 
-  let metCount = 0;
-  PASSWORD_RULES.forEach((rule) => {
-    const li = pwChecklist.querySelector(`li[data-rule="${rule.key}"]`);
-    const passed = rule.test(value);
-    li.classList.toggle('met', passed);
-    li.querySelector('.pw-check-icon').textContent = passed ? '✓' : '○';
-    if (passed) metCount++;
+    let metCount = 0;
+    PASSWORD_RULES.forEach((rule) => {
+      const li = checklistEl.querySelector(`li[data-rule="${rule.key}"]`);
+      const passed = rule.test(value);
+      li.classList.toggle('met', passed);
+      li.querySelector('.pw-check-icon').textContent = passed ? '✓' : '○';
+      if (passed) metCount++;
+    });
+
+    // Common/weak patterns cap the score even if individual rules pass.
+    const lower = value.toLowerCase();
+    const isRepeatedChar = /^(.)\1+$/.test(lower);
+    const commonPatterns = ['password', '12345678', 'qwerty', 'letmein', 'admin'];
+    const isCommon = isRepeatedChar || commonPatterns.some((p) => lower.includes(p));
+
+    let score = Math.round((metCount / PASSWORD_RULES.length) * 4);
+    if (isCommon) score = Math.min(score, 1);
+
+    const meta = strengthMeta[score];
+    segmentsEl.className = `pw-strength-segments ${meta.cls}`;
+    labelEl.textContent = translations[currentLang][meta.key];
+    labelEl.className = `pw-strength-label ${meta.cls}`;
   });
+}
 
-  // Common/weak patterns cap the score even if individual rules pass.
-  const lower = value.toLowerCase();
-  const isRepeatedChar = /^(.)\1+$/.test(lower);
-  const commonPatterns = ['password', '12345678', 'qwerty', 'letmein', 'admin'];
-  const isCommon = isRepeatedChar || commonPatterns.some((p) => lower.includes(p));
+attachPasswordStrengthMeter(
+  registerPasswordInput,
+  document.getElementById('pw-strength'),
+  document.getElementById('pw-strength-segments'),
+  document.getElementById('pw-strength-label'),
+  document.getElementById('pw-checklist')
+);
 
-  let score = Math.round((metCount / PASSWORD_RULES.length) * 4);
-  if (isCommon) score = Math.min(score, 1);
-
-  const meta = strengthMeta[score];
-  pwStrengthSegments.className = `pw-strength-segments ${meta.cls}`;
-  pwStrengthLabel.textContent = translations[currentLang][meta.key];
-  pwStrengthLabel.className = `pw-strength-label ${meta.cls}`;
-});
+attachPasswordStrengthMeter(
+  document.getElementById('google-password'),
+  document.getElementById('google-pw-strength'),
+  document.getElementById('google-pw-strength-segments'),
+  document.getElementById('google-pw-strength-label'),
+  document.getElementById('google-pw-checklist')
+);
 
 /* =====================
    API HELPER
@@ -425,20 +449,51 @@ document.getElementById('forgot-reset-view').addEventListener('submit', async (e
 // (APIs & Services -> Credentials -> Create Credentials -> OAuth client ID
 // -> Application type: Web application). It looks like:
 // "123456789-abc123.apps.googleusercontent.com"
-const GOOGLE_CLIENT_ID = '111129203237-admf758as0t3n1gve7fsfra4ijitcrij.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+
+let pendingGoogleToken = null;
+
+function redirectAfterAuth() {
+  const params = new URLSearchParams(window.location.search);
+  const redirectTo = params.get('redirect');
+  const safeRedirect = redirectTo && /^[a-zA-Z0-9_-]+\.html$/.test(redirectTo) ? redirectTo : 'index.html';
+  window.location.href = safeRedirect;
+}
 
 async function handleGoogleCredential(response) {
   clearStatus();
   try {
-    await api('/api/auth/google', { credential: response.credential });
-    const params = new URLSearchParams(window.location.search);
-    const redirectTo = params.get('redirect');
-    const safeRedirect = redirectTo && /^[a-zA-Z0-9_-]+\.html$/.test(redirectTo) ? redirectTo : 'index.html';
-    window.location.href = safeRedirect;
+    const data = await api('/api/auth/google', { credential: response.credential });
+    if (data.needsPassword) {
+      // Brand-new sign-up — no account exists yet. Ask for a password first.
+      pendingGoogleToken = data.pendingToken;
+      document.getElementById('google-email-display').value = data.email;
+      document.getElementById('google-username').value = data.suggestedUsername || '';
+      showView('google-complete');
+      return;
+    }
+    redirectAfterAuth();
   } catch (err) {
     showStatus(translations[currentLang].google_error, 'error');
   }
 }
+
+document.getElementById('google-complete-view').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearStatus();
+  const submitBtn = document.getElementById('google-complete-submit');
+  setLoading(submitBtn, true);
+  try {
+    const username = document.getElementById('google-username').value.trim();
+    const password = document.getElementById('google-password').value;
+    await api('/api/auth/google-complete', { pendingToken: pendingGoogleToken, username, password });
+    redirectAfterAuth();
+  } catch (err) {
+    showStatus(err.message, 'error');
+  } finally {
+    setLoading(submitBtn, false);
+  }
+});
 
 function initGoogleSignIn() {
   if (GOOGLE_CLIENT_ID.startsWith('YOUR_GOOGLE_CLIENT_ID')) {

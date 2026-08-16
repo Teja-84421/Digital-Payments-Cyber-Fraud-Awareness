@@ -1,34 +1,27 @@
 // api/auth/google.js
 // POST { credential } -> verifies a Google ID token (from the "Continue
-// with Google" button) and logs the user in, creating an account on
-// first sign-in. No Google client secret is needed for this flow — the
-// ID token's signature is verified against Google's public keys.
+// with Google" button).
+//
+// - If an account already exists for this Google identity (or a matching
+//   email), logs the user in immediately, same as a normal login.
+// - If this is a brand-new sign-up, no account is created yet. Instead we
+//   return { needsPassword: true, pendingToken, ... } so the user can pick
+//   a username/password first (see api/auth/google-complete.js). This is
+//   what proves the Google identity was genuinely verified — the client
+//   can't skip this by claiming an email directly.
 
 const { OAuth2Client } = require('google-auth-library');
 const { getPool } = require('../_lib/db');
-const { signToken, setAuthCookie } = require('../_lib/auth');
+const { signToken, setAuthCookie, signPendingSignupToken } = require('../_lib/auth');
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const client = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 
-function usernameBaseFromEmail(email) {
+function usernameSuggestionFromEmail(email) {
   const local = email.split('@')[0].toLowerCase();
   const cleaned = local.replace(/[^a-z0-9_]/g, '');
   const trimmed = cleaned.slice(0, 16) || 'user';
   return trimmed.length >= 3 ? trimmed : trimmed.padEnd(3, '0');
-}
-
-async function generateUniqueUsername(pool, email) {
-  const base = usernameBaseFromEmail(email);
-  let candidate = base;
-  for (let attempt = 0; attempt < 6; attempt++) {
-    const [rows] = await pool.query('SELECT id FROM users WHERE username = ? LIMIT 1', [candidate]);
-    if (!rows.length) return candidate;
-    const suffix = Math.floor(100 + Math.random() * 900); // 3-digit suffix
-    candidate = `${base.slice(0, 16)}${suffix}`.slice(0, 20);
-  }
-  // Extremely unlikely fallback
-  return `${base.slice(0, 12)}${Date.now().toString().slice(-6)}`.slice(0, 20);
 }
 
 module.exports = async (req, res) => {
@@ -79,25 +72,26 @@ module.exports = async (req, res) => {
       }
     }
 
-    let user;
     if (rows.length) {
-      user = rows[0];
-    } else {
-      // 3) Brand new user — create an account with no password.
-      const username = await generateUniqueUsername(pool, email);
-      const [result] = await pool.query(
-        'INSERT INTO users (username, email, password_hash, google_id) VALUES (?, ?, NULL, ?)',
-        [username, email, googleId]
-      );
-      user = { id: result.insertId, username, email };
+      // Existing user (either already Google-linked, or just linked above) — log in normally.
+      const user = rows[0];
+      const token = signToken({ uid: user.id, username: user.username });
+      setAuthCookie(res, token);
+      return res.status(200).json({
+        message: 'Signed in with Google.',
+        user: { id: user.id, username: user.username, email: user.email },
+      });
     }
 
-    const token = signToken({ uid: user.id, username: user.username });
-    setAuthCookie(res, token);
-
+    // 3) Brand new sign-up — don't create the account yet. Hand back a
+    // short-lived pending token proving this email/google_id was verified,
+    // and let the user set a password to finish creating the account.
+    const pendingToken = signPendingSignupToken({ googleId, email });
     return res.status(200).json({
-      message: 'Signed in with Google.',
-      user: { id: user.id, username: user.username, email: user.email },
+      needsPassword: true,
+      pendingToken,
+      email,
+      suggestedUsername: usernameSuggestionFromEmail(email),
     });
   } catch (err) {
     console.error('google sign-in error:', err);
