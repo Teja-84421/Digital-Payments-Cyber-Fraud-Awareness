@@ -1,4 +1,4 @@
-🛡️ CyberSafe — Digital Payments & Cyber Fraud Awareness
+🛡️** CyberSafe — Digital Payments & Cyber Fraud Awareness**
 
 An interactive, multilingual awareness platform that helps users understand digital payments in India and recognize, prevent, and report cyber fraud.
 
