@@ -17,7 +17,13 @@
 <!-- NAV -->
 <nav>
   <div class="nav-logo">⚡ CyberSafe</div>
-  <div class="nav-right">
+
+  <!-- HAMBURGER (mobile only) -->
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
+    <span></span><span></span><span></span>
+  </button>
+
+  <div class="nav-right" id="nav-menu">
     <ul class="nav-links">
       <li><a href="#payments" data-i18n="nav_payments">Payments</a></li>
       <li><a href="#frauds" data-i18n="nav_frauds">Frauds</a></li>

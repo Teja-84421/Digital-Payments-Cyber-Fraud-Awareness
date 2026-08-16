@@ -18,6 +18,58 @@
    other scripts (quiz tracking, topic-completion buttons) can react.
    ===================== */
 
+/* =====================
+   MOBILE NAV (hamburger) — shared across all pages
+   Toggles the collapsible nav-right panel (nav-links, language
+   switcher, theme toggle, login/profile) on small/medium screens.
+   ===================== */
+(function () {
+  const hamburger = document.getElementById('nav-hamburger');
+  const navMenu = document.getElementById('nav-menu');
+  if (!hamburger || !navMenu) return;
+
+  function closeMenu() {
+    hamburger.classList.remove('open');
+    navMenu.classList.remove('open');
+    hamburger.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('nav-menu-open');
+  }
+  function openMenu() {
+    hamburger.classList.add('open');
+    navMenu.classList.add('open');
+    hamburger.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('nav-menu-open');
+  }
+
+  hamburger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    navMenu.classList.contains('open') ? closeMenu() : openMenu();
+  });
+
+  // Close the menu whenever a link inside it is tapped (nav links,
+  // section links, login link, or profile-dropdown links).
+  navMenu.addEventListener('click', (e) => {
+    if (e.target.closest('a')) closeMenu();
+  });
+
+  // Close on outside tap.
+  document.addEventListener('click', (e) => {
+    if (!navMenu.classList.contains('open')) return;
+    if (navMenu.contains(e.target) || hamburger.contains(e.target)) return;
+    closeMenu();
+  });
+
+  // Close on Escape.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMenu();
+  });
+
+  // Close automatically if the viewport grows back to desktop width.
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 1024) closeMenu();
+  });
+})();
+
 (function () {
   const AUTH_LABELS = {
     en: { logout: 'Log out', greeting: 'Signed in as', dashboard: 'My Dashboard' },

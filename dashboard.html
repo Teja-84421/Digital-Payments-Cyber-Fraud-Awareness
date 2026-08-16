@@ -16,7 +16,13 @@
 <!-- NAV (identical structure to index.html, so it looks/behaves the same) -->
 <nav>
   <a href="index.html" class="nav-logo" style="text-decoration:none;">⚡ CyberSafe</a>
-  <div class="nav-right">
+
+  <!-- HAMBURGER (mobile only) -->
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
+    <span></span><span></span><span></span>
+  </button>
+
+  <div class="nav-right" id="nav-menu">
     <ul class="nav-links">
       <li><a href="index.html#payments" data-i18n="nav_payments">Payments</a></li>
       <li><a href="index.html#frauds" data-i18n="nav_frauds">Frauds</a></li>
