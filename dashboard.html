@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Dashboard — Digital Payments & Cyber Fraud Awareness</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="auth-ui.css">
+<link rel="stylesheet" href="dashboard.css">
+<link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body data-auth-required="login.html">
+
+<!-- NAV (identical structure to index.html, so it looks/behaves the same) -->
+<nav>
+  <a href="index.html" class="nav-logo" style="text-decoration:none;">⚡ CyberSafe</a>
+  <div class="nav-right">
+    <ul class="nav-links">
+      <li><a href="index.html#payments" data-i18n="nav_payments">Payments</a></li>
+      <li><a href="index.html#frauds" data-i18n="nav_frauds">Frauds</a></li>
+      <li><a href="index.html#protect" data-i18n="nav_protect">Stay Safe</a></li>
+      <li><a href="index.html#videos" data-i18n="nav_videos">Videos</a></li>
+      <li><a href="index.html#quiz" data-i18n="nav_quiz">Quiz</a></li>
+      <li><a href="index.html#help" data-i18n="nav_help">Help</a></li>
+    </ul>
+
+    <!-- PROFILE (populated by auth-ui.js; this page requires login so it's always the profile widget, never the plain Login link) -->
+    <div id="nav-auth-slot"></div>
+
+    <!-- LANGUAGE TOGGLE -->
+    <div class="lang-switcher">
+      <button class="lang-btn active" id="lang-en" onclick="setLanguage('en')">EN</button>
+      <span class="lang-divider">|</span>
+      <button class="lang-btn" id="lang-hi" onclick="setLanguage('hi')">हिं</button>
+      <span class="lang-divider">|</span>
+      <button class="lang-btn" id="lang-te" onclick="setLanguage('te')">తె</button>
+    </div>
+
+    <!-- THEME TOGGLE -->
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+      <span class="toggle-icon" id="toggle-icon">☀️</span>
+      <div class="toggle-track">
+        <div class="toggle-thumb"></div>
+      </div>
+      <span class="toggle-label" id="toggle-label">Light</span>
+    </button>
+  </div>
+</nav>
+
+<main class="dash-wrap" id="dash-main">
+  <div class="dash-loading" id="dash-loading">Loading your dashboard…</div>
+</main>
+
+<script src="script.js"></script>
+<script src="auth-ui.js"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>

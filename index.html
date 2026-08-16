@@ -6,8 +6,9 @@
 <title>Digital Payments & Cyber Fraud Awareness</title>
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="auth-ui.css">
+<link rel="stylesheet" href="dashboard.css">
 <link rel="icon" type="image/png" href="favicon.png">
-</head>3
+</head>
 <body>
 
 <!-- NAV -->
@@ -179,53 +180,85 @@
     <p class="section-desc" data-i18n="sec02_desc">Cybercriminals are evolving rapidly. Here are the most common fraud types targeting digital payment users in India.</p>
 
     <div class="fraud-grid">
-      <div class="fraud-card">
+      <div class="fraud-card" data-topic="fraud1">
         <span class="fraud-icon">🎣</span>
         <div class="fraud-tag">Phishing</div>
         <h3 data-i18n="fraud1_title">Fake Emails & Websites</h3>
         <p data-i18n="fraud1_desc">Fraudsters send fake emails mimicking banks (SBI, HDFC) or apps. Clicking links takes you to a fake site that steals your login credentials and OTP.</p>
+        <button type="button" class="topic-complete-btn" data-topic-btn="fraud1" hidden>
+          <span class="topic-complete-icon">○</span>
+          <span class="topic-complete-label" data-i18n="mark_complete">Mark as Completed</span>
+        </button>
       </div>
-      <div class="fraud-card">
+      <div class="fraud-card" data-topic="fraud2">
         <span class="fraud-icon">📞</span>
         <div class="fraud-tag">Vishing</div>
         <h3 data-i18n="fraud2_title">Fake Customer Care Calls</h3>
         <p data-i18n="fraud2_desc">Callers pose as bank officials, claiming your KYC is expired or account will be blocked. They ask for OTP, card details, or UPI PIN to "verify."</p>
+        <button type="button" class="topic-complete-btn" data-topic-btn="fraud2" hidden>
+          <span class="topic-complete-icon">○</span>
+          <span class="topic-complete-label" data-i18n="mark_complete">Mark as Completed</span>
+        </button>
       </div>
-      <div class="fraud-card">
+      <div class="fraud-card" data-topic="fraud3">
         <span class="fraud-icon">🔲</span>
         <div class="fraud-tag">QR Scam</div>
         <h3 data-i18n="fraud3_title">Fake QR Code Fraud</h3>
         <p data-i18n="fraud3_desc">Scammers send QR codes saying "scan to receive money." But in UPI, scanning a QR always means you PAY — you can never receive via a QR code.</p>
+        <button type="button" class="topic-complete-btn" data-topic-btn="fraud3" hidden>
+          <span class="topic-complete-icon">○</span>
+          <span class="topic-complete-label" data-i18n="mark_complete">Mark as Completed</span>
+        </button>
       </div>
-      <div class="fraud-card">
+      <div class="fraud-card" data-topic="fraud4">
         <span class="fraud-icon">💸</span>
         <div class="fraud-tag">OLX / Job Fraud</div>
         <h3 data-i18n="fraud4_title">Online Marketplace Scams</h3>
         <p data-i18n="fraud4_desc">Fake buyers on OLX, Quikr, or job portals. They send fake advance payments and ask you to "refund" a small amount via UPI, stealing far more.</p>
+        <button type="button" class="topic-complete-btn" data-topic-btn="fraud4" hidden>
+          <span class="topic-complete-icon">○</span>
+          <span class="topic-complete-label" data-i18n="mark_complete">Mark as Completed</span>
+        </button>
       </div>
-      <div class="fraud-card">
+      <div class="fraud-card" data-topic="fraud5">
         <span class="fraud-icon">🖥️</span>
         <div class="fraud-tag">Remote Access</div>
         <h3 data-i18n="fraud5_title">Screen Sharing Fraud</h3>
         <p data-i18n="fraud5_desc">Fraudsters ask you to install AnyDesk, TeamViewer, etc. under the guise of "technical support." They then access your banking apps and steal money.</p>
+        <button type="button" class="topic-complete-btn" data-topic-btn="fraud5" hidden>
+          <span class="topic-complete-icon">○</span>
+          <span class="topic-complete-label" data-i18n="mark_complete">Mark as Completed</span>
+        </button>
       </div>
-      <div class="fraud-card">
+      <div class="fraud-card" data-topic="fraud6">
         <span class="fraud-icon">💬</span>
         <div class="fraud-tag">SIM Swap</div>
         <h3 data-i18n="fraud6_title">SIM Swap Attack</h3>
         <p data-i18n="fraud6_desc">Criminals get your phone number ported to their SIM using forged documents. They then receive all your OTPs and drain your accounts.</p>
+        <button type="button" class="topic-complete-btn" data-topic-btn="fraud6" hidden>
+          <span class="topic-complete-icon">○</span>
+          <span class="topic-complete-label" data-i18n="mark_complete">Mark as Completed</span>
+        </button>
       </div>
-      <div class="fraud-card">
+      <div class="fraud-card" data-topic="fraud7">
         <span class="fraud-icon">🏦</span>
         <div class="fraud-tag">Loan App</div>
         <h3 data-i18n="fraud7_title">Predatory Loan Apps</h3>
         <p data-i18n="fraud7_desc">Fake instant loan apps collect your Aadhaar, PAN, and contacts. They harass users with threats of sharing data publicly if immediate repayments aren't made.</p>
+        <button type="button" class="topic-complete-btn" data-topic-btn="fraud7" hidden>
+          <span class="topic-complete-icon">○</span>
+          <span class="topic-complete-label" data-i18n="mark_complete">Mark as Completed</span>
+        </button>
       </div>
-      <div class="fraud-card">
+      <div class="fraud-card" data-topic="fraud8">
         <span class="fraud-icon">🎰</span>
         <div class="fraud-tag">Investment</div>
         <h3 data-i18n="fraud8_title">Ponzi / Crypto Scams</h3>
         <p data-i18n="fraud8_desc">Promises of 30–100% returns via WhatsApp groups or Telegram. Often disguised as crypto, trading, or pyramid schemes. Victims lose entire savings.</p>
+        <button type="button" class="topic-complete-btn" data-topic-btn="fraud8" hidden>
+          <span class="topic-complete-icon">○</span>
+          <span class="topic-complete-label" data-i18n="mark_complete">Mark as Completed</span>
+        </button>
       </div>
     </div>
   </div>
@@ -446,5 +479,6 @@
 
 <script src="script.js"></script>
 <script src="auth-ui.js"></script>
+<script src="topic-tracker.js"></script>
 </body>
 </html>

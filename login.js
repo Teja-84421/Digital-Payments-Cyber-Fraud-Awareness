@@ -292,7 +292,11 @@ document.getElementById('login-view').addEventListener('submit', async (e) => {
     const identifier = document.getElementById('login-identifier').value.trim();
     const password = document.getElementById('login-password').value;
     await api('/api/auth/login', { identifier, password });
-    window.location.href = 'index.html';
+    const params = new URLSearchParams(window.location.search);
+    const redirectTo = params.get('redirect');
+    // Only allow same-site relative filenames — never an absolute/external URL.
+    const safeRedirect = redirectTo && /^[a-zA-Z0-9_-]+\.html$/.test(redirectTo) ? redirectTo : 'index.html';
+    window.location.href = safeRedirect;
   } catch (err) {
     showStatus(err.message, 'error');
   } finally {

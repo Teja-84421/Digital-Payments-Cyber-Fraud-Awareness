@@ -196,6 +196,8 @@ const translations = {
     nav_quiz: "Quiz",
     nav_help: "Help",
     nav_login: "Login",
+    mark_complete: "Mark as Completed",
+    mark_completed_label: "Completed",
     hero_title1: "Digital Payments",
     hero_title2: "Cyber Fraud",
     hero_title3: "Awareness",
@@ -321,6 +323,8 @@ const translations = {
     nav_quiz: "क्विज़",
     nav_help: "सहायता",
     nav_login: "लॉग इन",
+    mark_complete: "पूर्ण के रूप में चिह्नित करें",
+    mark_completed_label: "पूर्ण",
     hero_title1: "डिजिटल भुगतान",
     hero_title2: "साइबर धोखाधड़ी",
     hero_title3: "जागरूकता",
@@ -446,6 +450,8 @@ const translations = {
     nav_quiz: "క్విజ్",
     nav_help: "సహాయం",
     nav_login: "లాగిన్",
+    mark_complete: "పూర్తయినట్లు గుర్తించండి",
+    mark_completed_label: "పూర్తయింది",
     hero_title1: "డిజిటల్ చెల్లింపులు",
     hero_title2: "సైబర్ మోసం",
     hero_title3: "అవగాహన",
@@ -565,6 +571,10 @@ const translations = {
   }
 };
 
+// Exposed for other scripts (e.g. topic-tracker.js) that reuse these strings
+// instead of duplicating a separate translation set.
+window.translations = translations;
+
 /* =====================
    LANGUAGE SYSTEM
    ===================== */
@@ -625,30 +635,35 @@ const questionsData = {
       q: "You receive a QR code on WhatsApp from an unknown person saying 'Scan this to receive ₹5000'. What do you do?",
       opts: ["Scan it immediately", "Ask them to send again", "Never scan — in UPI, scanning a QR always means you PAY", "Call your bank first"],
       ans: 2,
+      topic: 'fraud3',
       exp: "✅ Correct! Scanning a QR code in UPI always initiates a payment FROM you. You can NEVER receive money by scanning a QR code."
     },
     {
       q: "A 'bank officer' calls and says your KYC is expired. He asks for your OTP to 'update' it. What do you do?",
       opts: ["Share OTP quickly to avoid account block", "Ask him to call back later", "Hang up — banks NEVER ask for OTP", "Share only half the OTP"],
       ans: 2,
+      topic: 'fraud2',
       exp: "✅ Correct! No bank, government body, or app will ever ask for your OTP. This is a vishing (voice phishing) scam."
     },
     {
       q: "You sold something on OLX. The 'buyer' sends ₹1 and asks you to enter your UPI PIN to 'collect the full payment'. What happens?",
       opts: ["You receive the full amount", "Nothing happens", "You send money to the scammer", "Your account gets verified"],
       ans: 2,
+      topic: 'fraud4',
       exp: "✅ Correct! Entering your UPI PIN always authorizes an outgoing payment, never an incoming one. This is the classic OLX QR/PIN scam."
     },
     {
       q: "Which of these is a legitimate way your bank will contact you?",
       opts: ["WhatsApp message asking to update KYC via a link", "Call asking for your card number and CVV", "Email from bank's official domain with no attachments", "SMS asking you to call an unknown number"],
       ans: 2,
+      topic: 'fraud1',
       exp: "✅ Correct! Legitimate bank emails come from official domains and never ask for sensitive information or have suspicious attachments."
     },
     {
       q: "You lost money to a cyber fraud. What is the FIRST thing you should do?",
       opts: ["Post about it on social media", "Call 1930 (Cyber Crime Helpline) immediately", "Wait and see if money comes back", "Change your UPI PIN"],
       ans: 1,
+      topic: null,
       exp: "✅ Correct! Call 1930 immediately — it's the National Cyber Crime Helpline. Early reporting maximizes the chance of fund recovery."
     }
   ],
@@ -657,30 +672,35 @@ const questionsData = {
       q: "एक अनजान व्यक्ति WhatsApp पर QR कोड भेजता है और कहता है 'पैसे पाने के लिए स्कैन करें'। आप क्या करेंगे?",
       opts: ["तुरंत स्कैन करें", "दोबारा भेजने के लिए कहें", "कभी स्कैन न करें — UPI में QR स्कैन का मतलब हमेशा भुगतान करना है", "पहले बैंक को कॉल करें"],
       ans: 2,
+      topic: 'fraud3',
       exp: "✅ सही! UPI में QR कोड स्कैन करने का मतलब हमेशा आपकी तरफ से भुगतान होता है। QR स्कैन से कभी पैसे नहीं मिलते।"
     },
     {
       q: "'बैंक अधिकारी' कॉल करके कहते हैं कि KYC समाप्त हो गई है और OTP मांगते हैं। आप क्या करेंगे?",
       opts: ["खाता बंद होने से बचाने के लिए OTP दें", "बाद में कॉल करने के लिए कहें", "फोन काटें — बैंक कभी OTP नहीं मांगते", "आधा OTP साझा करें"],
       ans: 2,
+      topic: 'fraud2',
       exp: "✅ सही! कोई भी बैंक, सरकारी संस्था या ऐप कभी OTP नहीं मांगेगा। यह विशिंग (वॉयस फिशिंग) घोटाला है।"
     },
     {
       q: "आपने OLX पर सामान बेचा। 'खरीदार' ₹1 भेजता है और कहता है 'पूरा पेमेंट पाने के लिए UPI PIN डालें'। क्या होगा?",
       opts: ["आपको पूरी राशि मिलेगी", "कुछ नहीं होगा", "आप जालसाज को पैसे भेज देंगे", "आपका खाता सत्यापित हो जाएगा"],
       ans: 2,
+      topic: 'fraud4',
       exp: "✅ सही! UPI PIN डालना हमेशा आपकी तरफ से भुगतान अधिकृत करता है, कभी प्राप्त नहीं। यह क्लासिक OLX QR/PIN घोटाला है।"
     },
     {
       q: "आपका बैंक आपसे संपर्क करने का वैध तरीका कौन सा है?",
       opts: ["WhatsApp पर KYC अपडेट लिंक", "कॉल पर कार्ड नंबर और CVV मांगना", "बैंक के आधिकारिक डोमेन से बिना अटैचमेंट ईमेल", "अज्ञात नंबर पर कॉल करने वाला SMS"],
       ans: 2,
+      topic: 'fraud1',
       exp: "✅ सही! वैध बैंक ईमेल आधिकारिक डोमेन से आते हैं और संवेदनशील जानकारी कभी नहीं मांगते।"
     },
     {
       q: "साइबर धोखाधड़ी में पैसे गए। सबसे पहले क्या करेंगे?",
       opts: ["सोशल मीडिया पर पोस्ट करें", "तुरंत 1930 (साइबर क्राइम हेल्पलाइन) पर कॉल करें", "प्रतीक्षा करें कि पैसे वापस आएंगे", "UPI PIN बदलें"],
       ans: 1,
+      topic: null,
       exp: "✅ सही! तुरंत 1930 पर कॉल करें — यह राष्ट्रीय साइबर अपराध हेल्पलाइन है। जल्दी रिपोर्ट से फंड वापसी की संभावना बढ़ती है।"
     }
   ],
@@ -689,36 +709,42 @@ const questionsData = {
       q: "ఒక అపరిచిత వ్యక్తి WhatsAppలో QR కోడ్ పంపి '₹5000 పొందడానికి స్కాన్ చేయండి' అని చెప్పాడు. మీరు ఏమి చేస్తారు?",
       opts: ["వెంటనే స్కాన్ చేయండి", "మళ్ళీ పంపమని అడగండి", "ఎప్పుడూ స్కాన్ చేయవద్దు — UPIలో QR స్కాన్ చేయడం అంటే మీరు చెల్లిస్తున్నారు", "మొదట మీ బ్యాంక్‌కు కాల్ చేయండి"],
       ans: 2,
+      topic: 'fraud3',
       exp: "✅ సరైనది! UPIలో QR కోడ్ స్కాన్ చేయడం ఎల్లప్పుడూ మీ నుండి చెల్లింపును ప్రారంభిస్తుంది. QR కోడ్ స్కాన్ చేయడం ద్వారా మీరు ఎప్పుడూ డబ్బు పొందలేరు."
     },
     {
       q: "ఒక 'బ్యాంక్ అధికారి' కాల్ చేసి మీ KYC గడువు ముగిసిందని, దాన్ని 'అప్‌డేట్' చేయడానికి OTP అడుగుతాడు. మీరు ఏమి చేస్తారు?",
       opts: ["ఖాతా బ్లాక్ కాకుండా ఉండటానికి త్వరగా OTP ఇవ్వండి", "తర్వాత మళ్ళీ కాల్ చేయమని చెప్పండి", "ఫోన్ పెట్టండి — బ్యాంకులు ఎప్పుడూ OTP అడగవు", "OTPలో సగం మాత్రమే ఇవ్వండి"],
       ans: 2,
+      topic: 'fraud2',
       exp: "✅ సరైనది! ఏ బ్యాంక్, ప్రభుత్వ సంస్థ లేదా యాప్ కూడా మీ OTPని ఎప్పుడూ అడగదు. ఇది విశింగ్ (వాయిస్ ఫిషింగ్) మోసం."
     },
     {
       q: "మీరు OLXలో ఏదైనా విక్రయించారు. 'కొనుగోలుదారు' ₹1 పంపి, 'పూర్తి చెల్లింపు సేకరించడానికి' మీ UPI PIN నమోదు చేయమని అడుగుతాడు. ఏమి జరుగుతుంది?",
       opts: ["మీరు పూర్తి మొత్తం పొందుతారు", "ఏమీ జరగదు", "మీరు మోసగాడికి డబ్బు పంపుతారు", "మీ ఖాతా ధృవీకరించబడుతుంది"],
       ans: 2,
+      topic: 'fraud4',
       exp: "✅ సరైనది! మీ UPI PIN నమోదు చేయడం ఎల్లప్పుడూ అవుట్‌గోయింగ్ చెల్లింపును అధికారం చేస్తుంది, ఇన్‌కమింగ్ చెల్లింపును కాదు. ఇది క్లాసిక్ OLX QR/PIN మోసం."
     },
     {
       q: "మీ బ్యాంక్ మిమ్మల్ని సంప్రదించడానికి చట్టబద్ధమైన మార్గం ఏది?",
       opts: ["లింక్ ద్వారా KYC అప్‌డేట్ చేయమని WhatsApp సందేశం", "మీ కార్డ్ నంబర్ మరియు CVV అడిగే కాల్", "అటాచ్‌మెంట్‌లు లేని బ్యాంక్ అధికారిక డొమైన్ నుండి ఇమెయిల్", "తెలియని నంబర్‌కు కాల్ చేయమని SMS"],
       ans: 2,
+      topic: 'fraud1',
       exp: "✅ సరైనది! చట్టబద్ధమైన బ్యాంక్ ఇమెయిల్‌లు అధికారిక డొమైన్‌ల నుండి వస్తాయి మరియు సున్నితమైన సమాచారాన్ని ఎప్పుడూ అడగవు."
     },
     {
       q: "మీరు సైబర్ మోసంలో డబ్బు కోల్పోయారు. మీరు చేయవలసిన మొదటి పని ఏమిటి?",
       opts: ["దాని గురించి సోషల్ మీడియాలో పోస్ట్ చేయండి", "వెంటనే 1930 (సైబర్ క్రైమ్ హెల్ప్‌లైన్)కి కాల్ చేయండి", "డబ్బు తిరిగి వస్తుందో లేదో వేచి ఉండండి", "మీ UPI PIN మార్చండి"],
       ans: 1,
+      topic: null,
       exp: "✅ సరైనది! వెంటనే 1930కి కాల్ చేయండి — ఇది జాతీయ సైబర్ క్రైమ్ హెల్ప్‌లైన్. ప్రారంభ రిపోర్టింగ్ నిధుల రికవరీ అవకాశాన్ని పెంచుతుంది."
     }
   ]
 };
 
 let current = 0, score = 0, answered = false;
+let attemptTopicResults = []; // {topic, correct} for the question(s) answered in the current pass — used to report a finished quiz attempt to the dashboard
 
 function loadQuestion() {
   answered = false;
@@ -761,7 +787,8 @@ function answer(i) {
     b.style.cursor = 'default';
   });
   const feedback = document.getElementById('quiz-feedback');
-  if (i === q.ans) {
+  const isCorrect = i === q.ans;
+  if (isCorrect) {
     score++;
     feedback.textContent = q.exp;
     feedback.style.color = 'var(--green)';
@@ -769,20 +796,40 @@ function answer(i) {
     feedback.textContent = `❌ ${q.exp}`;
     feedback.style.color = 'var(--accent2)';
   }
+  if (q.topic) {
+    attemptTopicResults.push({ topic: q.topic, correct: isCorrect });
+  }
   document.getElementById('quiz-score').textContent = `${scoreLabel()}: ${score} / ${current + 1}`;
   const nextBtn = document.getElementById('quiz-next');
   nextBtn.style.display = 'inline-block';
   const questions2 = questionsData[currentLang] || questionsData.en;
   if (current >= questions2.length - 1) {
     nextBtn.textContent = `${finishedLabel()} ${score}/${questions2.length} ✓`;
+    submitQuizAttempt(score, questions2.length);
     nextBtn.onclick = () => {
       current = -1;
       score = 0;
+      attemptTopicResults = [];
       nextQuestion();
       nextBtn.textContent = nextQuestionLabel();
       nextBtn.onclick = nextQuestion;
     };
   }
+}
+
+// Reports a completed quiz pass to the personalized dashboard. Silently
+// no-ops for signed-out visitors (the quiz itself still works for everyone).
+function submitQuizAttempt(finalScore, total) {
+  if (!window.__cyberSafeUser) return;
+  const weakTopics = [...new Set(
+    attemptTopicResults.filter((r) => !r.correct).map((r) => r.topic)
+  )];
+  fetch('/api/dashboard/quiz-attempt', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ score: finalScore, total, lang: currentLang, weakTopics }),
+  }).catch(() => { /* dashboard tracking is best-effort; never block the quiz UI */ });
 }
 
 function scoreLabel() {

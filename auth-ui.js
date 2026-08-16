@@ -1,21 +1,28 @@
 /* =====================
    AUTH UI — shared across all pages
    Checks /api/auth/me on load and swaps the nav "Login" link for a
-   profile widget (avatar + dropdown with name/email/logout) when
-   the visitor has an active session.
+   profile widget (avatar + dropdown with "My Dashboard", section links,
+   name/email/logout) when the visitor has an active session.
 
    Requires a nav element with id="nav-auth-slot" wrapping the Login link:
      <li id="nav-auth-slot"><a href="login.html" data-i18n="nav_login">Login</a></li>
 
-   Optional: add [data-auth-redirect="index.html"] to <body> on pages
-   (like login.html) that should bounce a logged-in visitor away.
+   Optional body attributes:
+     data-auth-redirect="index.html"   -> bounce a LOGGED-IN visitor away
+                                           (used by login.html)
+     data-auth-required="login.html"   -> bounce a LOGGED-OUT visitor away
+                                           (used by dashboard.html)
+
+   Also exposes window.__cyberSafeUser (null when signed out) and fires a
+   "cybersafe:auth" event on document once the session check resolves, so
+   other scripts (quiz tracking, topic-completion buttons) can react.
    ===================== */
 
 (function () {
   const AUTH_LABELS = {
-    en: { logout: 'Log out', greeting: 'Signed in as' },
-    hi: { logout: 'लॉग आउट', greeting: 'इस रूप में साइन इन हैं' },
-    te: { logout: 'లాగ్ అవుట్', greeting: 'ఇలా సైన్ ఇన్ చేసారు' },
+    en: { logout: 'Log out', greeting: 'Signed in as', dashboard: 'My Dashboard' },
+    hi: { logout: 'लॉग आउट', greeting: 'इस रूप में साइन इन हैं', dashboard: 'मेरा डैशबोर्ड' },
+    te: { logout: 'లాగ్ అవుట్', greeting: 'ఇలా సైన్ ఇన్ చేసారు', dashboard: 'నా డాష్‌బోర్డ్' },
   };
 
   // Same section links as the main nav — repeated here so they're reachable
@@ -53,6 +60,10 @@
           <span class="profile-caret">▾</span>
         </button>
         <div class="profile-dropdown" role="menu">
+          <a class="profile-dashboard-link" href="dashboard.html">
+            <span aria-hidden="true">🛡️</span> ${t.dashboard}
+          </a>
+          <div class="profile-dropdown-divider"></div>
           <div class="profile-nav-links">
             ${renderSectionLinksHtml(lang)}
           </div>
@@ -121,9 +132,22 @@
       /* treat as logged out */
     }
 
-    const redirectTarget = document.body.getAttribute('data-auth-redirect');
-    if (user && redirectTarget) {
-      window.location.href = redirectTarget;
+    window.__cyberSafeUser = user || null;
+    document.dispatchEvent(new CustomEvent('cybersafe:auth', { detail: { user: window.__cyberSafeUser } }));
+
+    const redirectIfLoggedIn = document.body.getAttribute('data-auth-redirect');
+    if (user && redirectIfLoggedIn) {
+      const params = new URLSearchParams(window.location.search);
+      const requested = params.get('redirect');
+      const safeRequested = requested && /^[a-zA-Z0-9_-]+\.html$/.test(requested) ? requested : null;
+      window.location.href = safeRequested || redirectIfLoggedIn;
+      return;
+    }
+
+    const redirectIfLoggedOut = document.body.getAttribute('data-auth-required');
+    if (!user && redirectIfLoggedOut) {
+      const here = window.location.pathname.split('/').pop() || 'index.html';
+      window.location.href = `${redirectIfLoggedOut}?redirect=${encodeURIComponent(here)}`;
       return;
     }
 
