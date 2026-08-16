@@ -92,6 +92,29 @@
 
 .profile-widget.open .profile-dropdown { display: block; }
 
+.profile-nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.profile-nav-link {
+  display: block;
+  padding: 0.5rem 0.4rem;
+  border-radius: 6px;
+  color: var(--text);
+  text-decoration: none;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+}
+
+.profile-nav-link:hover {
+  background: var(--surface2);
+  color: var(--accent);
+}
+
 .profile-dropdown-name {
   font-family: 'Syne', sans-serif;
   font-weight: 800;

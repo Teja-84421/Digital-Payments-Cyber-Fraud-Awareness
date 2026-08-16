@@ -18,8 +18,26 @@
     te: { logout: 'లాగ్ అవుట్', greeting: 'ఇలా సైన్ ఇన్ చేసారు' },
   };
 
+  // Same section links as the main nav — repeated here so they're reachable
+  // from the profile dropdown on mobile, where the top nav-links list is hidden.
+  const SECTION_LINKS = [
+    { hash: '#payments', en: 'Payments', hi: 'भुगतान', te: 'చెల్లింపులు' },
+    { hash: '#frauds', en: 'Frauds', hi: 'धोखाधड़ी', te: 'మోసాలు' },
+    { hash: '#protect', en: 'Stay Safe', hi: 'सुरक्षित रहें', te: 'సురక్షితంగా ఉండండి' },
+    { hash: '#videos', en: 'Videos', hi: 'वीडियो', te: 'వీడియోలు' },
+    { hash: '#quiz', en: 'Quiz', hi: 'क्विज़', te: 'క్విజ్' },
+    { hash: '#help', en: 'Help', hi: 'सहायता', te: 'సహాయం' },
+  ];
+
   function getLang() {
     return localStorage.getItem('lang') || 'en';
+  }
+
+  function renderSectionLinksHtml(lang) {
+    return SECTION_LINKS.map(
+      (link) =>
+        `<a class="profile-nav-link" href="index.html${link.hash}">${escapeHtml(link[lang] || link.en)}</a>`
+    ).join('');
   }
 
   function renderProfileWidget(slot, user) {
@@ -35,6 +53,10 @@
           <span class="profile-caret">▾</span>
         </button>
         <div class="profile-dropdown" role="menu">
+          <div class="profile-nav-links">
+            ${renderSectionLinksHtml(lang)}
+          </div>
+          <div class="profile-dropdown-divider"></div>
           <div class="profile-dropdown-greeting" style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">${t.greeting}</div>
           <div class="profile-dropdown-name">${escapeHtml(user.username)}</div>
           <div class="profile-dropdown-email">${escapeHtml(user.email)}</div>
@@ -59,6 +81,13 @@
         widget.classList.remove('open');
         trigger.setAttribute('aria-expanded', 'false');
       }
+    });
+
+    widget.querySelectorAll('.profile-nav-link').forEach((link) => {
+      link.addEventListener('click', () => {
+        widget.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
+      });
     });
 
     logoutBtn.addEventListener('click', async () => {
