@@ -14,7 +14,7 @@
   border: 1px solid var(--border);
   border-radius: 50px;
   color: var(--muted);
-  font-family: 'Space Mono', monospace;
+  font-family: 'Times New Roman', Times, serif;
   font-size: 0.78rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -50,7 +50,7 @@
 .dash-welcome {
   font-size: 1.9rem;
   font-weight: 800;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Times New Roman', Times, serif;
   margin-bottom: 0.3rem;
 }
 
@@ -82,7 +82,7 @@
 }
 
 .dash-card-label {
-  font-family: 'Space Mono', monospace;
+  font-family: 'Times New Roman', Times, serif;
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -91,7 +91,7 @@
 }
 
 .dash-card-value {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Times New Roman', Times, serif;
   font-size: 1.9rem;
   font-weight: 800;
   color: var(--text);
@@ -132,7 +132,7 @@
 }
 
 .dash-topic-list li {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Times New Roman', Times, serif;
   font-weight: 700;
   font-size: 0.9rem;
   color: var(--text);
@@ -153,7 +153,7 @@
 }
 
 .dash-recommend-title {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Times New Roman', Times, serif;
   font-weight: 800;
   font-size: 1.1rem;
   margin: 0.75rem 0 0.4rem;
@@ -168,7 +168,7 @@
 
 .dash-loading {
   color: var(--muted);
-  font-family: 'Space Mono', monospace;
+  font-family: 'Times New Roman', Times, serif;
   font-size: 0.9rem;
   padding: 2rem 0;
 }
@@ -184,7 +184,7 @@
 
 #feedback-form .field-label {
   display: block;
-  font-family: 'Space Mono', monospace;
+  font-family: 'Times New Roman', Times, serif;
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -200,7 +200,7 @@
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--text);
-  font-family: 'Syne', sans-serif;
+  font-family: 'Times New Roman', Times, serif;
   font-size: 0.95rem;
   outline: none;
   transition: border-color 0.2s ease;
