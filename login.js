@@ -449,7 +449,7 @@ document.getElementById('forgot-reset-view').addEventListener('submit', async (e
 // (APIs & Services -> Credentials -> Create Credentials -> OAuth client ID
 // -> Application type: Web application). It looks like:
 // "123456789-abc123.apps.googleusercontent.com"
-const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '111129203237-admf758as0t3n1gve7fsfra4ijitcrij.apps.googleusercontent.com';
 
 let pendingGoogleToken = null;
 
