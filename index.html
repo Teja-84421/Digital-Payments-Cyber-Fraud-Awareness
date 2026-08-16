@@ -22,10 +22,8 @@
       <li><a href="#videos" data-i18n="nav_videos">Videos</a></li>
       <li><a href="#quiz" data-i18n="nav_quiz">Quiz</a></li>
       <li><a href="#help" data-i18n="nav_help">Help</a></li>
+      <li><a href="#feedback" data-i18n="nav_feedback">Feedback</a></li>
     </ul>
-
-    <!-- LOGIN / PROFILE (stays visible on mobile — not part of the collapsible nav-links) -->
-    <div id="nav-auth-slot"><a href="login.html" class="nav-login-link" data-i18n="nav_login">Login</a></div>
 
     <!-- LANGUAGE TOGGLE -->
     <div class="lang-switcher">
@@ -44,6 +42,9 @@
       </div>
       <span class="toggle-label" id="toggle-label">Light</span>
     </button>
+
+    <!-- LOGIN / PROFILE (stays visible on mobile — not part of the collapsible nav-links) -->
+    <div id="nav-auth-slot"><a href="login.html" class="nav-login-link" data-i18n="nav_login">Login</a></div>
   </div>
 </nav>
 
@@ -466,6 +467,30 @@
 
 <hr class="divider">
 
+<!-- FEEDBACK -->
+<section id="feedback" style="max-width:640px;">
+  <div class="section-label" data-i18n="feedback_label">08 — Get in Touch</div>
+  <h2 class="section-title" data-i18n="feedback_title">Feedback & Queries</h2>
+  <p class="section-desc" data-i18n="feedback_desc">Found something wrong, have a suggestion, or a question about a scam? Send us a message — it goes straight to our inbox.</p>
+
+  <form id="feedback-form">
+    <div id="feedback-status" class="form-status" hidden></div>
+
+    <label class="field-label" for="feedback-name" data-i18n="feedback_name_label">Name (optional)</label>
+    <input type="text" id="feedback-name" class="field-input" maxlength="80" autocomplete="name">
+
+    <label class="field-label" for="feedback-email" data-i18n="feedback_email_label">Your Email</label>
+    <input type="email" id="feedback-email" class="field-input" required autocomplete="email">
+
+    <label class="field-label" for="feedback-message" data-i18n="feedback_message_label">Message</label>
+    <textarea id="feedback-message" class="field-input" rows="5" maxlength="2000" required style="resize:vertical;"></textarea>
+
+    <button type="submit" class="btn btn-primary auth-submit" id="feedback-submit" data-i18n="feedback_submit">Send Feedback</button>
+  </form>
+</section>
+
+<hr class="divider">
+
 <!-- FOOTER -->
 <footer>
   <p>
@@ -480,5 +505,6 @@
 <script src="script.js"></script>
 <script src="auth-ui.js"></script>
 <script src="topic-tracker.js"></script>
+<script src="feedback.js"></script>
 </body>
 </html>

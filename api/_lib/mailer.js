@@ -80,4 +80,36 @@ async function sendOtpEmail(to, otp, lang = 'en') {
   });
 }
 
-module.exports = { sendOtpEmail };
+async function sendFeedbackEmail({ name, email, message }) {
+  const safeName = escapeHtml(name || 'Anonymous');
+  const safeEmail = escapeHtml(email);
+  const safeMessage = escapeHtml(message).replace(/\n/g, '<br>');
+
+  const html = `
+  <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;border:1px solid #e2e8f0;border-radius:12px;">
+    <h2 style="color:#0077aa;margin-top:0;">New Feedback — CyberSafe Website</h2>
+    <p style="color:#333;"><strong>From:</strong> ${safeName} (${safeEmail})</p>
+    <div style="background:#f0f4f8;color:#0f1a2e;padding:16px;border-radius:8px;line-height:1.6;white-space:pre-wrap;">${safeMessage}</div>
+  </div>`;
+
+  const to = process.env.FEEDBACK_TO_EMAIL || process.env.SMTP_USER;
+
+  return getTransporter().sendMail({
+    from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+    to,
+    replyTo: email,
+    subject: `CyberSafe Feedback from ${name || email}`,
+    html,
+    text: `From: ${name || 'Anonymous'} (${email})\n\n${message}`,
+  });
+}
+
+function escapeHtml(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+module.exports = { sendOtpEmail, sendFeedbackEmail };

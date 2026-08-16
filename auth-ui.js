@@ -34,6 +34,7 @@
     { hash: '#videos', en: 'Videos', hi: 'वीडियो', te: 'వీడియోలు' },
     { hash: '#quiz', en: 'Quiz', hi: 'क्विज़', te: 'క్విజ్' },
     { hash: '#help', en: 'Help', hi: 'सहायता', te: 'సహాయం' },
+    { hash: '#feedback', en: 'Feedback', hi: 'प्रतिक्रिया', te: 'అభిప్రాయం' },
   ];
 
   function getLang() {

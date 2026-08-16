@@ -168,6 +168,8 @@
     return div.innerHTML;
   }
 
+  let lastSummaryData = null;
+
   async function loadDashboard() {
     const lang = getLang();
     const L = LABELS[lang] || LABELS.en;
@@ -175,15 +177,31 @@
       const res = await fetch('/api/dashboard/summary', { credentials: 'include' });
       if (!res.ok) throw new Error('Failed to load summary');
       const data = await res.json();
+      lastSummaryData = data;
       renderDashboard(data);
     } catch (e) {
       document.getElementById('dash-main').innerHTML = `<p class="dash-loading">${L.loadError}</p>`;
     }
   }
 
+  // script.js defines a global setLanguage() (for the nav's data-i18n text).
+  // Wrap it so switching EN/HI/TE also re-renders these dynamically-built
+  // cards immediately, without needing a page refresh or a second fetch.
+  function hookLanguageSwitch() {
+    if (typeof window.setLanguage !== 'function' || window.setLanguage.__dashboardWrapped) return;
+    const original = window.setLanguage;
+    const wrapped = function (lang) {
+      original(lang);
+      if (lastSummaryData) renderDashboard(lastSummaryData);
+    };
+    wrapped.__dashboardWrapped = true;
+    window.setLanguage = wrapped;
+  }
+
   // auth-ui.js handles the "redirect to login if not signed in" check (via
   // data-auth-required on <body>) and fires "cybersafe:auth" once resolved.
   document.addEventListener('cybersafe:auth', (e) => {
+    hookLanguageSwitch();
     if (e.detail.user) loadDashboard();
     // If there's no user, auth-ui.js is already redirecting to login.html.
   });
