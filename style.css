@@ -987,8 +987,7 @@ footer .footer-sub {
     align-items: stretch;
     gap: 0;
     margin: 0;
-    background: var(--nav-bg);
-    backdrop-filter: blur(16px);
+    background: var(--surface);
     border-bottom: 1px solid var(--border);
     box-shadow: var(--shadow);
     max-height: 0;
