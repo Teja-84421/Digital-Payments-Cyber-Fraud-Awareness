@@ -129,11 +129,11 @@ module.exports = async (req, res) => {
     if (!response.ok) {
       const errText = await response.text().catch(() => '');
       console.error('quiz generate: Anthropic API error —', response.status, errText.slice(0, 300));
-      // status included (but not the error body) so you can self-diagnose from
-      // the browser Network tab without needing Vercel log access — e.g. 401
-      // = bad/revoked key, 400 = model name or request issue, 429 = rate
-      // limit or no credit, 529 = Anthropic overloaded.
-      return res.status(200).json({ questions: null, source: 'ai_error', status: response.status });
+      // status + a truncated detail message included so you can self-diagnose
+      // from the browser/Network tab without needing Vercel log access —
+      // e.g. 401 = bad/revoked key, 400 often = no billing credit or a bad
+      // model name, 429 = rate limit, 529 = Anthropic overloaded.
+      return res.status(200).json({ questions: null, source: 'ai_error', status: response.status, detail: errText.slice(0, 300) });
     }
 
     const data = await response.json();
