@@ -1,11 +1,21 @@
-// api/auth/me.js
-// GET -> returns the logged-in user (based on the session cookie), or 401.
-// Use this on other pages to check "is someone logged in?".
+// api/auth/session.js
+// Combines the old me.js (GET) and logout.js (POST) into one file — each
+// file under /api counts as a separate serverless function, and Vercel's
+// Hobby plan caps that at 12, so closely-related tiny endpoints like
+// these two are merged here to stay under the limit.
+//
+// GET  -> returns the logged-in user (based on the session cookie), or 401.
+// POST -> clears the session cookie (logs out).
 
 const { getPool } = require('../_lib/db');
-const { parseCookies, verifyToken, COOKIE_NAME } = require('../_lib/auth');
+const { parseCookies, verifyToken, clearAuthCookie, COOKIE_NAME } = require('../_lib/auth');
 
 module.exports = async (req, res) => {
+  if (req.method === 'POST') {
+    clearAuthCookie(res);
+    return res.status(200).json({ message: 'Logged out.' });
+  }
+
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -29,7 +39,7 @@ module.exports = async (req, res) => {
     }
     return res.status(200).json({ user: rows[0] });
   } catch (err) {
-    console.error('me error:', err);
+    console.error('session (me) error:', err);
     return res.status(500).json({ error: 'Something went wrong.' });
   }
 };

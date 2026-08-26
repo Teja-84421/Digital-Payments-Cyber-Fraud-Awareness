@@ -1,6 +1,6 @@
 /* =====================
    AUTH UI — shared across all pages
-   Checks /api/auth/me on load and swaps the nav "Login" link for a
+   Checks /api/auth/session (GET) on load and swaps the nav "Login" link for a
    profile widget (avatar + dropdown with "My Dashboard", section links,
    name/email/logout) when the visitor has an active session.
 
@@ -157,7 +157,7 @@
     logoutBtn.addEventListener('click', async () => {
       logoutBtn.disabled = true;
       try {
-        await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+        await fetch('/api/auth/session', { method: 'POST', credentials: 'include' });
       } catch (e) {
         /* ignore network errors, cookie may still be cleared client-side on next load */
       }
@@ -176,7 +176,7 @@
     let user = null;
 
     try {
-      const res = await fetch('/api/auth/me', { credentials: 'include' });
+      const res = await fetch('/api/auth/session', { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         user = data.user;

@@ -30,11 +30,11 @@
   }
 
   async function toggleTopic(topicKey, completed) {
-    const res = await fetch('/api/dashboard/topic-progress', {
+    const res = await fetch('/api/dashboard/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ topicKey, completed }),
+      body: JSON.stringify({ action: 'topic_progress', topicKey, completed }),
     });
     if (!res.ok) throw new Error('Failed to update progress');
   }

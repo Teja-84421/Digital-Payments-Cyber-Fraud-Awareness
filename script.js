@@ -920,11 +920,11 @@ function submitQuizAttempt(finalScore, total) {
   const weakTopics = [...new Set(
     attemptTopicResults.filter((r) => !r.correct).map((r) => r.topic)
   )];
-  fetch('/api/dashboard/quiz-attempt', {
+  fetch('/api/dashboard/track', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ score: finalScore, total, lang: currentLang, weakTopics }),
+    body: JSON.stringify({ action: 'quiz_attempt', score: finalScore, total, lang: currentLang, weakTopics }),
   }).catch(() => { /* dashboard tracking is best-effort; never block the quiz UI */ });
 }
 
