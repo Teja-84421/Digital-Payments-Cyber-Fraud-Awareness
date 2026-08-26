@@ -1,6 +1,7 @@
 // api/quiz/generate.js
 // POST { lang: 'en'|'hi'|'te', recentQuestions?: string[] } -> generates 10
-// fresh multiple-choice quiz questions using Claude, so the quiz is
+// fresh multiple-choice quiz questions via an LLM (routed through
+// OpenRouter, using a Claude model under the hood), so the quiz is
 // different every attempt instead of a fixed static bank. recentQuestions
 // (question text only, tracked client-side) is used to actively tell the
 // model what NOT to repeat, since the model has no memory between calls
@@ -9,11 +10,21 @@
 
 const { VALID_TOPICS } = require('../_lib/topics');
 
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const MODEL = 'claude-haiku-4-5-20251001';
+// From openrouter.ai -> Keys. Add this in Vercel -> Settings -> Environment
+// Variables as OPENROUTER_API_KEY (looks like sk-or-v1-...). See
+// QUIZ_AI_SETUP.md for the full walkthrough.
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+// OpenRouter model slug (not Anthropic's native model name) — this routes
+// through OpenRouter to Claude Haiku. See openrouter.ai/anthropic for other
+// available Claude model slugs if you want to swap this.
+const MODEL = 'anthropic/claude-haiku-4.5';
 const QUESTION_COUNT = 10;
 const MAX_RECENT_QUESTIONS = 40;
 const MAX_RECENT_QUESTION_LEN = 300;
+// Optional but recommended by OpenRouter for analytics/rate-limit fairness —
+// harmless to leave as-is, doesn't need to match your real deployed domain.
+const SITE_URL = 'https://digital-payments-and-cyber-fraud-aw.vercel.app';
+const SITE_NAME = 'CyberSafe Quiz';
 
 const LANG_NAMES = { en: 'English', hi: 'Hindi (Devanagari script)', te: 'Telugu (Telugu script)' };
 
@@ -105,18 +116,19 @@ module.exports = async (req, res) => {
   const lang = ['en', 'hi', 'te'].includes(langInput) ? langInput : 'en';
   const recentQuestions = sanitizeRecentQuestions(body.recentQuestions);
 
-  if (!ANTHROPIC_API_KEY) {
+  if (!OPENROUTER_API_KEY) {
     // Not configured — tell the frontend to use its built-in fallback bank.
     return res.status(200).json({ questions: null, source: 'not_configured' });
   }
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'HTTP-Referer': SITE_URL,
+        'X-Title': SITE_NAME,
       },
       body: JSON.stringify({
         model: MODEL,
@@ -128,16 +140,16 @@ module.exports = async (req, res) => {
 
     if (!response.ok) {
       const errText = await response.text().catch(() => '');
-      console.error('quiz generate: Anthropic API error —', response.status, errText.slice(0, 300));
+      console.error('quiz generate: OpenRouter API error —', response.status, errText.slice(0, 300));
       // status + a truncated detail message included so you can self-diagnose
       // from the browser/Network tab without needing Vercel log access —
-      // e.g. 401 = bad/revoked key, 400 often = no billing credit or a bad
-      // model name, 429 = rate limit, 529 = Anthropic overloaded.
+      // e.g. 401 = bad/revoked key, 402 = no OpenRouter credit, 429 = rate
+      // limit, 400 = bad model slug or malformed request.
       return res.status(200).json({ questions: null, source: 'ai_error', status: response.status, detail: errText.slice(0, 300) });
     }
 
     const data = await response.json();
-    const rawText = (data.content || []).map((block) => block.text || '').join('');
+    const rawText = data.choices?.[0]?.message?.content || '';
     const jsonText = stripCodeFences(rawText);
 
     let parsed;
