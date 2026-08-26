@@ -652,8 +652,8 @@ function setLanguage(lang) {
   // Update html lang attribute
   document.documentElement.lang = (lang === 'hi' || lang === 'te') ? lang : 'en';
 
-  // Reload quiz in new language
-  loadQuestion();
+  // Reload quiz in new language (fetches a fresh AI-generated batch)
+  startNewQuizAttempt();
 
   // Reload video resources in new language (different channels/content per language)
   renderVideos(lang);
@@ -668,7 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /* =====================
    QUIZ
    ===================== */
-const questionsData = {
+const fallbackQuestionsData = {
   en: [
     {
       q: "You receive a QR code on WhatsApp from an unknown person saying 'Scan this to receive ₹5000'. What do you do?",
@@ -784,11 +784,73 @@ const questionsData = {
 
 let current = 0, score = 0, answered = false;
 let attemptTopicResults = []; // {topic, correct} for the question(s) answered in the current pass — used to report a finished quiz attempt to the dashboard
+let activeQuestions = []; // the question set actually in use for the current attempt (AI-generated, or a shuffled fallback copy)
+let quizLoading = false;
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function loadingLabel() {
+  if (currentLang === 'hi') return 'नए प्रश्न लाए जा रहे हैं…';
+  if (currentLang === 'te') return 'కొత్త ప్రశ్నలు లోడ్ అవుతున్నాయి…';
+  return 'Loading new questions…';
+}
+
+// Fetches a fresh batch of AI-generated questions for the current
+// language. Falls back to a shuffled copy of the built-in static bank if
+// the AI call isn't configured, fails, or returns something unusable —
+// the quiz always works either way.
+async function fetchQuizQuestions(lang) {
+  try {
+    const res = await fetch(`/api/quiz/generate?lang=${encodeURIComponent(lang)}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.questions) && data.questions.length) {
+        return data.questions;
+      }
+    }
+  } catch (e) {
+    // network error, ignore and fall back below
+  }
+  const fallback = fallbackQuestionsData[lang] || fallbackQuestionsData.en;
+  return shuffleArray(fallback);
+}
+
+// Starts a brand-new quiz attempt: resets score/progress and fetches a
+// fresh batch of questions (new content every time, per the new AI flow).
+async function startNewQuizAttempt() {
+  if (quizLoading) return;
+  if (!document.getElementById('quiz-question')) return; // no quiz on this page (e.g. dashboard.html)
+  quizLoading = true;
+  current = 0;
+  score = 0;
+  answered = false;
+  attemptTopicResults = [];
+
+  const qEl = document.getElementById('quiz-question');
+  const optsEl = document.getElementById('quiz-options');
+  const fbEl = document.getElementById('quiz-feedback');
+  const nextBtn = document.getElementById('quiz-next');
+  if (qEl) qEl.textContent = loadingLabel();
+  if (optsEl) optsEl.innerHTML = '';
+  if (fbEl) fbEl.textContent = '';
+  if (nextBtn) nextBtn.style.display = 'none';
+
+  activeQuestions = await fetchQuizQuestions(currentLang);
+  quizLoading = false;
+  loadQuestion();
+}
 
 function loadQuestion() {
   answered = false;
-  const questions = questionsData[currentLang] || questionsData.en;
-  const q = questions[current % questions.length];
+  if (!activeQuestions.length) return; // still loading — startNewQuizAttempt() will call this again once ready
+  const q = activeQuestions[current % activeQuestions.length];
 
   const qEl = document.getElementById('quiz-question');
   const fbEl = document.getElementById('quiz-feedback');
@@ -817,8 +879,7 @@ function loadQuestion() {
 function answer(i) {
   if (answered) return;
   answered = true;
-  const questions = questionsData[currentLang] || questionsData.en;
-  const q = questions[current % questions.length];
+  const q = activeQuestions[current % activeQuestions.length];
   const btns = document.querySelectorAll('.quiz-opt');
   btns.forEach((b, idx) => {
     if (idx === q.ans) b.classList.add('correct');
@@ -841,17 +902,13 @@ function answer(i) {
   document.getElementById('quiz-score').textContent = `${scoreLabel()}: ${score} / ${current + 1}`;
   const nextBtn = document.getElementById('quiz-next');
   nextBtn.style.display = 'inline-block';
-  const questions2 = questionsData[currentLang] || questionsData.en;
-  if (current >= questions2.length - 1) {
-    nextBtn.textContent = `${finishedLabel()} ${score}/${questions2.length} ✓`;
-    submitQuizAttempt(score, questions2.length);
+  if (current >= activeQuestions.length - 1) {
+    nextBtn.textContent = `${finishedLabel()} ${score}/${activeQuestions.length} ✓`;
+    submitQuizAttempt(score, activeQuestions.length);
     nextBtn.onclick = () => {
-      current = -1;
-      score = 0;
-      attemptTopicResults = [];
-      nextQuestion();
       nextBtn.textContent = nextQuestionLabel();
       nextBtn.onclick = nextQuestion;
+      startNewQuizAttempt(); // fresh questions for the next attempt
     };
   }
 }
@@ -890,12 +947,11 @@ function nextQuestionLabel() {
 }
 
 function nextQuestion() {
-  const questions = questionsData[currentLang] || questionsData.en;
   current++;
-  if (current >= questions.length) { current = 0; score = 0; }
+  if (current >= activeQuestions.length) { current = 0; score = 0; }
   loadQuestion();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  loadQuestion();
+  startNewQuizAttempt();
 });
