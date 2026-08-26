@@ -704,6 +704,41 @@ const fallbackQuestionsData = {
       ans: 1,
       topic: null,
       exp: "✅ Correct! Call 1930 immediately — it's the National Cyber Crime Helpline. Early reporting maximizes the chance of fund recovery."
+    },
+    {
+      q: "Someone claiming to be from tech support calls you and asks you to install AnyDesk or TeamViewer to 'fix an issue' with your bank app. What should you do?",
+      opts: ["Install it and let them control your screen", "Only share your screen, not control", "Refuse — never give screen-sharing/remote access to unknown callers", "Install it but close your banking app first"],
+      ans: 2,
+      topic: 'fraud5',
+      exp: "✅ Correct! Remote-access apps let scammers see your OTPs and PINs live and drain your account. Never install these for unsolicited callers."
+    },
+    {
+      q: "Your phone suddenly loses network signal for hours and you later find your SIM was reissued to someone else. This is most likely which fraud?",
+      opts: ["Phishing", "SIM swap fraud", "QR code fraud", "Ponzi scheme"],
+      ans: 1,
+      topic: 'fraud6',
+      exp: "✅ Correct! In SIM swap fraud, criminals get your number reissued on a new SIM to intercept OTPs. Report a sudden 'No Service' status to your telecom operator immediately."
+    },
+    {
+      q: "An app promises an instant loan with no paperwork, but after disbursing a small amount it demands a huge 'processing fee' and threatens to leak your contacts. What is this?",
+      opts: ["A legitimate NBFC offer", "A predatory instant loan app scam", "A government loan scheme", "A credit score booster"],
+      ans: 1,
+      topic: 'fraud7',
+      exp: "✅ Correct! Unregulated instant-loan apps often use harassment and data misuse as extortion tactics. Only use RBI-registered lenders."
+    },
+    {
+      q: "A 'friend' shows you huge, guaranteed monthly returns from a new crypto investment app and urges you to invest quickly before it 'closes'. What should you suspect?",
+      opts: ["A safe, high-return investment", "A Ponzi/crypto investment scam", "A government savings scheme", "A stock market IPO"],
+      ans: 1,
+      topic: 'fraud8',
+      exp: "✅ Correct! Guaranteed high returns and urgency to invest fast are classic red flags of a Ponzi or fake crypto investment scam."
+    },
+    {
+      q: "Where can you file an official online complaint about a cyber financial fraud in India, besides calling 1930?",
+      opts: ["cybercrime.gov.in", "Any random forwarded WhatsApp link", "A private recovery agent's website", "Your fraud's own customer care number"],
+      ans: 0,
+      topic: null,
+      exp: "✅ Correct! cybercrime.gov.in is the official Government of India portal for reporting cyber crimes, alongside the 1930 helpline."
     }
   ],
   hi: [
@@ -741,6 +776,41 @@ const fallbackQuestionsData = {
       ans: 1,
       topic: null,
       exp: "✅ सही! तुरंत 1930 पर कॉल करें — यह राष्ट्रीय साइबर अपराध हेल्पलाइन है। जल्दी रिपोर्ट से फंड वापसी की संभावना बढ़ती है।"
+    },
+    {
+      q: "कोई 'टेक सपोर्ट' वाला कॉल करके आपके बैंक ऐप की 'समस्या ठीक करने' के लिए AnyDesk या TeamViewer इंस्टॉल करने को कहता है। आप क्या करेंगे?",
+      opts: ["इंस्टॉल करके उन्हें स्क्रीन कंट्रोल दें", "सिर्फ स्क्रीन शेयर करें, कंट्रोल नहीं", "इनकार करें — अनजान कॉलर को कभी रिमोट एक्सेस न दें", "बैंकिंग ऐप बंद करके इंस्टॉल करें"],
+      ans: 2,
+      topic: 'fraud5',
+      exp: "✅ सही! रिमोट-एक्सेस ऐप्स से जालसाज आपके OTP और PIN लाइव देख सकते हैं और खाता खाली कर सकते हैं। अनजान कॉलर के लिए कभी इंस्टॉल न करें।"
+    },
+    {
+      q: "आपके फोन का नेटवर्क अचानक घंटों गायब हो जाता है और बाद में पता चलता है कि आपका सिम किसी और को जारी हो गया। यह कौन सी धोखाधड़ी है?",
+      opts: ["फिशिंग", "सिम स्वैप फ्रॉड", "QR कोड फ्रॉड", "पोंजी स्कीम"],
+      ans: 1,
+      topic: 'fraud6',
+      exp: "✅ सही! सिम स्वैप फ्रॉड में जालसाज OTP रोकने के लिए आपका नंबर नए सिम पर जारी करवा लेते हैं। 'No Service' अचानक दिखे तो तुरंत टेलीकॉम ऑपरेटर को बताएं।"
+    },
+    {
+      q: "एक ऐप बिना कागज़ी काम के तुरंत लोन का वादा करता है, थोड़ी राशि देने के बाद बड़ी 'प्रोसेसिंग फीस' मांगता है और आपके कॉन्टैक्ट्स लीक करने की धमकी देता है। यह क्या है?",
+      opts: ["वैध NBFC ऑफर", "प्रिडेटरी इंस्टेंट लोन ऐप फ्रॉड", "सरकारी लोन योजना", "क्रेडिट स्कोर बूस्टर"],
+      ans: 1,
+      topic: 'fraud7',
+      exp: "✅ सही! अनियंत्रित इंस्टेंट-लोन ऐप्स अक्सर उत्पीड़न और डेटा दुरुपयोग को जबरन वसूली के लिए इस्तेमाल करते हैं। केवल RBI-पंजीकृत लेंडर का उपयोग करें।"
+    },
+    {
+      q: "एक 'दोस्त' आपको नए क्रिप्टो इन्वेस्टमेंट ऐप से बड़े, गारंटीड मासिक रिटर्न दिखाकर 'जल्द बंद होने से पहले' निवेश करने को कहता है। आपको क्या शक करना चाहिए?",
+      opts: ["एक सुरक्षित, उच्च-रिटर्न निवेश", "पोंजी/क्रिप्टो निवेश घोटाला", "सरकारी बचत योजना", "स्टॉक मार्केट IPO"],
+      ans: 1,
+      topic: 'fraud8',
+      exp: "✅ सही! गारंटीड उच्च रिटर्न और जल्दी निवेश करने का दबाव पोंजी या नकली क्रिप्टो निवेश घोटाले के क्लासिक संकेत हैं।"
+    },
+    {
+      q: "1930 पर कॉल करने के अलावा, भारत में साइबर वित्तीय धोखाधड़ी की आधिकारिक ऑनलाइन शिकायत कहाँ दर्ज कर सकते हैं?",
+      opts: ["cybercrime.gov.in", "किसी भी फॉरवर्ड किए गए WhatsApp लिंक पर", "किसी निजी रिकवरी एजेंट की वेबसाइट पर", "फ्रॉड करने वाले के अपने कस्टमर केयर नंबर पर"],
+      ans: 0,
+      topic: null,
+      exp: "✅ सही! cybercrime.gov.in भारत सरकार का आधिकारिक पोर्टल है, जो 1930 हेल्पलाइन के साथ साइबर अपराध रिपोर्ट करने के लिए है।"
     }
   ],
   te: [
@@ -778,6 +848,41 @@ const fallbackQuestionsData = {
       ans: 1,
       topic: null,
       exp: "✅ సరైనది! వెంటనే 1930కి కాల్ చేయండి — ఇది జాతీయ సైబర్ క్రైమ్ హెల్ప్‌లైన్. ప్రారంభ రిపోర్టింగ్ నిధుల రికవరీ అవకాశాన్ని పెంచుతుంది."
+    },
+    {
+      q: "'టెక్ సపోర్ట్' నుండి ఒకరు కాల్ చేసి మీ బ్యాంక్ యాప్ 'సమస్యను పరిష్కరించడానికి' AnyDesk లేదా TeamViewer ఇన్‌స్టాల్ చేయమని అడుగుతారు. మీరు ఏమి చేయాలి?",
+      opts: ["ఇన్‌స్టాల్ చేసి స్క్రీన్ కంట్రోల్ ఇవ్వండి", "కంట్రోల్ కాదు, స్క్రీన్ మాత్రమే షేర్ చేయండి", "నిరాకరించండి — తెలియని కాలర్‌లకు ఎప్పుడూ రిమోట్ యాక్సెస్ ఇవ్వవద్దు", "బ్యాంకింగ్ యాప్ మూసి ఇన్‌స్టాల్ చేయండి"],
+      ans: 2,
+      topic: 'fraud5',
+      exp: "✅ సరైనది! రిమోట్-యాక్సెస్ యాప్‌లతో మోసగాళ్ళు మీ OTP మరియు PIN లైవ్‌గా చూసి ఖాతా ఖాళీ చేయగలరు. తెలియని కాలర్ల కోసం వీటిని ఎప్పుడూ ఇన్‌స్టాల్ చేయవద్దు."
+    },
+    {
+      q: "మీ ఫోన్ నెట్‌వర్క్ అకస్మాత్తుగా గంటల తరబడి పోతుంది మరియు తర్వాత మీ సిమ్ మరొకరికి రీఇష్యూ అయినట్లు తెలుస్తుంది. ఇది ఏ మోసం?",
+      opts: ["ఫిషింగ్", "సిమ్ స్వాప్ మోసం", "QR కోడ్ మోసం", "పాంజీ స్కీమ్"],
+      ans: 1,
+      topic: 'fraud6',
+      exp: "✅ సరైనది! సిమ్ స్వాప్ మోసంలో మోసగాళ్ళు OTPలను అడ్డగించడానికి మీ నంబర్‌ను కొత్త సిమ్‌పై రీఇష్యూ చేయిస్తారు. అకస్మాత్తుగా 'No Service' కనిపిస్తే వెంటనే టెలికాం ఆపరేటర్‌కు తెలియజేయండి."
+    },
+    {
+      q: "ఒక యాప్ ఎలాంటి పేపర్‌వర్క్ లేకుండా తక్షణ లోన్ వాగ్దానం చేస్తుంది, కొద్దిపాటి మొత్తం ఇచ్చాక భారీ 'ప్రాసెసింగ్ ఫీజు' అడిగి మీ కాంటాక్ట్‌లను లీక్ చేస్తానని బెదిరిస్తుంది. ఇది ఏమిటి?",
+      opts: ["చట్టబద్ధమైన NBFC ఆఫర్", "ప్రిడేటరీ ఇన్‌స్టంట్ లోన్ యాప్ మోసం", "ప్రభుత్వ లోన్ పథకం", "క్రెడిట్ స్కోర్ బూస్టర్"],
+      ans: 1,
+      topic: 'fraud7',
+      exp: "✅ సరైనది! నియంత్రణ లేని ఇన్‌స్టంట్-లోన్ యాప్‌లు తరచుగా వేధింపులు మరియు డేటా దుర్వినియోగాన్ని బెదిరింపు సాధనాలుగా వాడతాయి. RBI-నమోదిత లెండర్లను మాత్రమే వాడండి."
+    },
+    {
+      q: "ఒక 'స్నేహితుడు' కొత్త క్రిప్టో ఇన్వెస్ట్‌మెంట్ యాప్ నుండి భారీ, గ్యారంటీడ్ నెలవారీ రిటర్న్‌లు చూపించి, అది 'త్వరలో మూసివేస్తారు' కాబట్టి తొందరగా పెట్టుబడి పెట్టమని ఒత్తిడి చేస్తాడు. మీరు దేనిని అనుమానించాలి?",
+      opts: ["సురక్షితమైన, అధిక-రిటర్న్ పెట్టుబడి", "పాంజీ/క్రిప్టో ఇన్వెస్ట్‌మెంట్ మోసం", "ప్రభుత్వ పొదుపు పథకం", "స్టాక్ మార్కెట్ IPO"],
+      ans: 1,
+      topic: 'fraud8',
+      exp: "✅ సరైనది! గ్యారంటీడ్ అధిక రిటర్న్‌లు మరియు తొందరగా పెట్టుబడి పెట్టమని ఒత్తిడి చేయడం పాంజీ లేదా నకిలీ క్రిప్టో మోసం యొక్క క్లాసిక్ సంకేతాలు."
+    },
+    {
+      q: "1930కి కాల్ చేయడంతో పాటు, భారతదేశంలో సైబర్ ఆర్థిక మోసంపై అధికారిక ఆన్‌లైన్ ఫిర్యాదు ఎక్కడ దాఖలు చేయవచ్చు?",
+      opts: ["cybercrime.gov.in", "ఏదైనా ఫార్వర్డ్ చేసిన WhatsApp లింక్‌లో", "ఒక ప్రైవేట్ రికవరీ ఏజెంట్ వెబ్‌సైట్‌లో", "మోసం చేసిన వ్యక్తి యొక్క సొంత కస్టమర్ కేర్ నంబర్‌లో"],
+      ans: 0,
+      topic: null,
+      exp: "✅ సరైనది! cybercrime.gov.in అనేది భారత ప్రభుత్వం యొక్క అధికారిక పోర్టల్, ఇది 1930 హెల్ప్‌లైన్‌తో పాటు సైబర్ నేరాలను నివేదించడానికి ఉంది."
     }
   ]
 };
@@ -796,6 +901,38 @@ function shuffleArray(arr) {
   return a;
 }
 
+// --- Recently-seen question tracking (per browser, per language) ---
+// The AI has no memory between calls, so to avoid repeats we remember the
+// text of questions this browser has already been shown and send that list
+// along with every generation request so Claude can actively avoid them.
+const RECENT_QUESTIONS_KEY = 'cybersafe_recent_quiz_questions';
+const RECENT_QUESTIONS_MAX = 40; // per language
+
+function getRecentQuestions(lang) {
+  try {
+    const raw = localStorage.getItem(RECENT_QUESTIONS_KEY);
+    if (!raw) return [];
+    const data = JSON.parse(raw);
+    return Array.isArray(data[lang]) ? data[lang] : [];
+  } catch (e) {
+    return []; // localStorage unavailable (private browsing etc.) — non-fatal
+  }
+}
+
+function rememberRecentQuestions(lang, questions) {
+  try {
+    const raw = localStorage.getItem(RECENT_QUESTIONS_KEY);
+    const data = raw ? JSON.parse(raw) : {};
+    const existing = Array.isArray(data[lang]) ? data[lang] : [];
+    const combined = [...existing, ...questions.map((q) => q.q)];
+    const deduped = [...new Set(combined)];
+    data[lang] = deduped.slice(-RECENT_QUESTIONS_MAX);
+    localStorage.setItem(RECENT_QUESTIONS_KEY, JSON.stringify(data));
+  } catch (e) {
+    // ignore — history tracking is best-effort, never blocks the quiz
+  }
+}
+
 function loadingLabel() {
   if (currentLang === 'hi') return 'नए प्रश्न लाए जा रहे हैं…';
   if (currentLang === 'te') return 'కొత్త ప్రశ్నలు లోడ్ అవుతున్నాయి…';
@@ -803,20 +940,35 @@ function loadingLabel() {
 }
 
 // Fetches a fresh batch of AI-generated questions for the current
-// language. Falls back to a shuffled copy of the built-in static bank if
-// the AI call isn't configured, fails, or returns something unusable —
-// the quiz always works either way.
+// language, telling the AI which questions this browser has already seen
+// so it avoids repeating them. Falls back to a shuffled copy of the
+// built-in static bank if the AI call isn't configured, fails, or returns
+// something unusable — the quiz always works either way.
 async function fetchQuizQuestions(lang) {
   try {
-    const res = await fetch(`/api/quiz/generate?lang=${encodeURIComponent(lang)}`);
+    const recentQuestions = getRecentQuestions(lang);
+    const res = await fetch('/api/quiz/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lang, recentQuestions }),
+    });
     if (res.ok) {
       const data = await res.json();
+      if (data.source !== 'ai') {
+        // Fell back server-side (not configured / AI error / bad response).
+        // Surfacing this in the console makes misconfiguration easy to spot
+        // instead of silently looking like "the same quiz every time".
+        console.warn('Quiz: using built-in fallback questions —', data.source, data.status ? `(status ${data.status})` : '');
+      }
       if (Array.isArray(data.questions) && data.questions.length) {
+        rememberRecentQuestions(lang, data.questions);
         return data.questions;
       }
+    } else {
+      console.warn('Quiz: /api/quiz/generate returned HTTP', res.status);
     }
   } catch (e) {
-    // network error, ignore and fall back below
+    console.warn('Quiz: /api/quiz/generate request failed —', e.message);
   }
   const fallback = fallbackQuestionsData[lang] || fallbackQuestionsData.en;
   return shuffleArray(fallback);

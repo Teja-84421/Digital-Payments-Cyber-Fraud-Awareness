@@ -1,7 +1,7 @@
 # Setting up AI-generated quiz questions
 
-The quiz now asks Claude to write 5 fresh questions every time someone
-takes it, instead of reusing the same 5 questions forever. This needs
+The quiz now asks Claude to write 10 fresh questions every time someone
+takes it, instead of reusing the same 10 questions forever. This needs
 one thing only you can provide: an Anthropic API key (paid, pay-as-you-go
 — there is no free tier, but the cost per quiz generation is a small
 fraction of a cent with the model used here).
@@ -43,5 +43,17 @@ works.
 ## Notes
 
 - Uses `claude-haiku-4-5-20251001` — a fast, inexpensive model, well suited to short quiz-question generation.
-- Each generation is a single API call producing 5 questions in the selected language (EN/HI/TE), so it also naturally supports switching languages mid-quiz.
-- Nothing about the user's answers or personal data is sent to Anthropic — only a fixed instructional prompt describing the topics to write about.
+- Each generation is a single API call producing 10 questions in the selected language (EN/HI/TE), so it also naturally supports switching languages mid-quiz.
+- Nothing about the user's answers or personal data is sent to Anthropic — only an instructional prompt describing the topics to write about, plus the plain text of quiz questions this browser has already seen (tracked in `localStorage`, no names/emails/accounts involved), so Claude can avoid repeating them.
+
+## Avoiding repeat questions
+
+Each browser remembers (in `localStorage`, up to the last 40 question texts per language) which questions it's already been shown, and sends that list along with every `/api/quiz/generate` request. The prompt explicitly tells Claude not to reuse those questions or write thin rephrasings of them, so a learner doing several attempts in a row keeps seeing new scenarios instead of the same ones reworded. This resets if the browser's storage is cleared, and is separate per language.
+
+If you're testing and still see the exact same 10 questions every time (just reordered), the AI call is very likely failing and it's silently using the built-in static fallback bank. Open your browser's DevTools -> Network tab, reload the quiz, and check the response from `/api/quiz/generate`:
+- `{"questions": null, "source": "not_configured"}` — `ANTHROPIC_API_KEY` isn't visible to the deployed function. Double-check it's added under the correct Vercel environment (Production, not just Preview/Development) and that you redeployed *after* adding it.
+- `{"questions": null, "source": "ai_error", "status": ...}` — the Anthropic API rejected the request. `status: 401` = invalid/revoked key, `status: 429` = no credit or rate-limited, `status: 400` = malformed request (check the model name is still valid).
+- `{"questions": null, "source": "parse_error"}` or `"validation_error"` — the AI responded but not in the exact expected JSON shape; this should be rare but is fully harmless since the fallback bank kicks in automatically.
+- `{"questions": [...], "source": "ai"}` — it's working correctly.
+
+The browser console also logs a warning (`Quiz: using built-in fallback questions — ...`) whenever a fallback is used, so you don't need to dig into the Network tab unless you want the specific reason.

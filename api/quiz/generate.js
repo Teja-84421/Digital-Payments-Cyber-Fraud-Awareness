@@ -1,19 +1,37 @@
 // api/quiz/generate.js
-// GET ?lang=en|hi|te -> generates 5 fresh multiple-choice quiz questions
-// using Claude, so the quiz is different every attempt instead of a fixed
-// static bank. Falls back gracefully (empty body -> frontend uses its own
+// POST { lang: 'en'|'hi'|'te', recentQuestions?: string[] } -> generates 10
+// fresh multiple-choice quiz questions using Claude, so the quiz is
+// different every attempt instead of a fixed static bank. recentQuestions
+// (question text only, tracked client-side) is used to actively tell the
+// model what NOT to repeat, since the model has no memory between calls
+// on its own. Falls back gracefully (empty body -> frontend uses its own
 // static fallback questions) if the AI call fails or isn't configured.
 
 const { VALID_TOPICS } = require('../_lib/topics');
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const MODEL = 'claude-haiku-4-5-20251001';
-const QUESTION_COUNT = 5;
+const QUESTION_COUNT = 10;
+const MAX_RECENT_QUESTIONS = 40;
+const MAX_RECENT_QUESTION_LEN = 300;
 
 const LANG_NAMES = { en: 'English', hi: 'Hindi (Devanagari script)', te: 'Telugu (Telugu script)' };
 
-function buildPrompt(lang) {
+function sanitizeRecentQuestions(input) {
+  if (!Array.isArray(input)) return [];
+  return input
+    .filter((q) => typeof q === 'string' && q.trim())
+    .map((q) => q.trim().slice(0, MAX_RECENT_QUESTION_LEN))
+    .slice(-MAX_RECENT_QUESTIONS);
+}
+
+function buildPrompt(lang, recentQuestions) {
   const languageName = LANG_NAMES[lang] || LANG_NAMES.en;
+
+  const avoidBlock = recentQuestions.length
+    ? `\n\nThe learner has ALREADY been asked these exact questions in previous attempts — this is critical for their learning, since seeing the same question again teaches them nothing new:\n${recentQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n\nDo NOT reuse any of the above, and do NOT write a thin rephrasing of one of them (e.g. swapping only the name, amount, or app while keeping the same scam mechanic and question structure does NOT count as new). For each topic, pick a genuinely different angle, scenario, or twist than anything above — e.g. a different channel (SMS vs call vs app notification vs in-person), a different victim role (payer vs payee vs bystander), or a different stage of the scam (initial contact vs mid-scam vs after-the-fact red flag).`
+    : '';
+
   return `You are writing a multiple-choice quiz for an Indian digital-payments & cyber-fraud awareness website.
 
 Write exactly ${QUESTION_COUNT} NEW multiple-choice questions in ${languageName}, covering realistic Indian scenarios. Each question must be about ONE of these topics (use the exact topic key given):
@@ -27,7 +45,7 @@ Write exactly ${QUESTION_COUNT} NEW multiple-choice questions in ${languageName}
 - "fraud8": Ponzi / crypto investment scams
 - null: general cyber-crime reporting procedure (e.g. calling the 1930 helpline, cybercrime.gov.in)
 
-Use each topic at most once across the ${QUESTION_COUNT} questions, and include at least one "null" (reporting) question if possible. Invent fresh, specific, varied scenarios each time — different names, amounts, apps, and phrasing from anything a generic quiz might reuse. Keep each question realistic and concise (1-3 sentences).
+Cover EVERY one of the 8 fraud topics (fraud1 through fraud8) exactly once, plus include exactly 2 "null" (general cyber-crime reporting) questions, for a total of ${QUESTION_COUNT} questions. Invent fresh, specific, varied scenarios each time — different names, amounts, apps, and phrasing from anything a generic quiz might reuse. Keep each question realistic and concise (1-3 sentences).${avoidBlock}
 
 Respond with ONLY a raw JSON array (no markdown, no code fences, no commentary) of exactly ${QUESTION_COUNT} objects, each shaped exactly like this:
 {"q": "<question text>", "opts": ["<option A>", "<option B>", "<option C>", "<option D>"], "ans": <integer 0-3, index of the correct option>, "topic": "<one of fraud1..fraud8, or null>", "exp": "<one short sentence explanation, starting with a check-mark emoji and the word for 'Correct' in ${languageName}>"}
@@ -75,11 +93,17 @@ function validateQuestions(parsed) {
 }
 
 module.exports = async (req, res) => {
-  if (req.method !== 'GET') {
+  // Accept POST (preferred — carries recentQuestions in the body) and GET
+  // (backward-compatible, ?lang=en, no dedup) so nothing breaks if some
+  // caller still hits this with a plain GET.
+  if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const lang = ['en', 'hi', 'te'].includes(req.query.lang) ? req.query.lang : 'en';
+  const body = req.method === 'POST' ? req.body || {} : {};
+  const langInput = body.lang || req.query.lang;
+  const lang = ['en', 'hi', 'te'].includes(langInput) ? langInput : 'en';
+  const recentQuestions = sanitizeRecentQuestions(body.recentQuestions);
 
   if (!ANTHROPIC_API_KEY) {
     // Not configured — tell the frontend to use its built-in fallback bank.
@@ -96,16 +120,20 @@ module.exports = async (req, res) => {
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 1500,
+        max_tokens: 3000,
         temperature: 1,
-        messages: [{ role: 'user', content: buildPrompt(lang) }],
+        messages: [{ role: 'user', content: buildPrompt(lang, recentQuestions) }],
       }),
     });
 
     if (!response.ok) {
       const errText = await response.text().catch(() => '');
       console.error('quiz generate: Anthropic API error —', response.status, errText.slice(0, 300));
-      return res.status(200).json({ questions: null, source: 'ai_error' });
+      // status included (but not the error body) so you can self-diagnose from
+      // the browser Network tab without needing Vercel log access — e.g. 401
+      // = bad/revoked key, 400 = model name or request issue, 429 = rate
+      // limit or no credit, 529 = Anthropic overloaded.
+      return res.status(200).json({ questions: null, source: 'ai_error', status: response.status });
     }
 
     const data = await response.json();
