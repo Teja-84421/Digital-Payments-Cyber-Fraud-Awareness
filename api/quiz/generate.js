@@ -15,7 +15,7 @@ const { VALID_TOPICS } = require('../_lib/topics');
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 // Gemini model name — fast and cheap, well suited to short quiz-question
 // generation. See ai.google.dev/gemini-api/docs/models for other options.
-const MODEL = 'gemini-2.5-flash';
+const MODEL = 'gemini-3.6-flash';
 const QUESTION_COUNT = 10;
 const MAX_RECENT_QUESTIONS = 40;
 const MAX_RECENT_QUESTION_LEN = 300;
