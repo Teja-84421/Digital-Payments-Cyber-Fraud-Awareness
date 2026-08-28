@@ -1,7 +1,6 @@
 // api/quiz/generate.js
 // POST { lang: 'en'|'hi'|'te', recentQuestions?: string[] } -> generates 10
-// fresh multiple-choice quiz questions via an LLM (routed through
-// OpenRouter, using a Claude model under the hood), so the quiz is
+// fresh multiple-choice quiz questions via the Gemini API, so the quiz is
 // different every attempt instead of a fixed static bank. recentQuestions
 // (question text only, tracked client-side) is used to actively tell the
 // model what NOT to repeat, since the model has no memory between calls
@@ -10,21 +9,16 @@
 
 const { VALID_TOPICS } = require('../_lib/topics');
 
-// From openrouter.ai -> Keys. Add this in Vercel -> Settings -> Environment
-// Variables as OPENROUTER_API_KEY (looks like sk-or-v1-...). See
-// QUIZ_AI_SETUP.md for the full walkthrough.
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-// OpenRouter model slug (not Anthropic's native model name) — this routes
-// through OpenRouter to Claude Haiku. See openrouter.ai/anthropic for other
-// available Claude model slugs if you want to swap this.
-const MODEL = 'anthropic/claude-haiku-4.5';
+// From aistudio.google.com -> Get API key. Add this in Vercel -> Settings ->
+// Environment Variables as GEMINI_API_KEY. See QUIZ_AI_SETUP.md for the
+// full walkthrough.
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+// Gemini model name — fast and cheap, well suited to short quiz-question
+// generation. See ai.google.dev/gemini-api/docs/models for other options.
+const MODEL = 'gemini-2.5-flash';
 const QUESTION_COUNT = 10;
 const MAX_RECENT_QUESTIONS = 40;
 const MAX_RECENT_QUESTION_LEN = 300;
-// Optional but recommended by OpenRouter for analytics/rate-limit fairness —
-// harmless to leave as-is, doesn't need to match your real deployed domain.
-const SITE_URL = 'https://digital-payments-and-cyber-fraud-aw.vercel.app';
-const SITE_NAME = 'CyberSafe Quiz';
 
 const LANG_NAMES = { en: 'English', hi: 'Hindi (Devanagari script)', te: 'Telugu (Telugu script)' };
 
@@ -116,40 +110,43 @@ module.exports = async (req, res) => {
   const lang = ['en', 'hi', 'te'].includes(langInput) ? langInput : 'en';
   const recentQuestions = sanitizeRecentQuestions(body.recentQuestions);
 
-  if (!OPENROUTER_API_KEY) {
+  if (!GEMINI_API_KEY) {
     // Not configured — tell the frontend to use its built-in fallback bank.
     return res.status(200).json({ questions: null, source: 'not_configured' });
   }
 
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'HTTP-Referer': SITE_URL,
-        'X-Title': SITE_NAME,
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 2500,
-        temperature: 1,
-        messages: [{ role: 'user', content: buildPrompt(lang, recentQuestions) }],
-      }),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': GEMINI_API_KEY,
+        },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: buildPrompt(lang, recentQuestions) }] }],
+          generationConfig: {
+            temperature: 1,
+            maxOutputTokens: 3000,
+            responseMimeType: 'application/json',
+          },
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errText = await response.text().catch(() => '');
-      console.error('quiz generate: OpenRouter API error —', response.status, errText.slice(0, 300));
+      console.error('quiz generate: Gemini API error —', response.status, errText.slice(0, 300));
       // status + a truncated detail message included so you can self-diagnose
       // from the browser/Network tab without needing Vercel log access —
-      // e.g. 401 = bad/revoked key, 402 = no OpenRouter credit, 429 = rate
-      // limit, 400 = bad model slug or malformed request.
+      // e.g. 400 = bad API key or malformed request, 403 = key restricted/
+      // API not enabled, 429 = free-tier rate limit hit.
       return res.status(200).json({ questions: null, source: 'ai_error', status: response.status, detail: errText.slice(0, 300) });
     }
 
     const data = await response.json();
-    const rawText = data.choices?.[0]?.message?.content || '';
+    const rawText = data.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '';
     const jsonText = stripCodeFences(rawText);
 
     let parsed;
