@@ -132,7 +132,7 @@ module.exports = async (req, res) => {
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 3000,
+        max_tokens: 2500,
         temperature: 1,
         messages: [{ role: 'user', content: buildPrompt(lang, recentQuestions) }],
       }),
