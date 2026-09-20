@@ -13,13 +13,14 @@ const { VALID_TOPICS } = require('../_lib/topics');
 // Environment Variables as GEMINI_API_KEY. See QUIZ_AI_SETUP.md for the
 // full walkthrough.
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-// Gemini model name. Deliberately using the established 2.5 Flash rather
-// than the newest release: brand-new models see the heaviest demand and
-// return far more 503 (overloaded) errors — 2.5 Flash is fast, cheap, and
-// has a much longer track record of steady availability for a simple
-// structured JSON generation task like this one.
-// See ai.google.dev/gemini-api/docs/models for other options.
-const MODEL = 'gemini-2.5-flash';
+// Gemini model name. Google's API returns a 404 for gemini-2.5-flash on
+// newer API keys ("no longer available to new users") and explicitly
+// points to this one as its replacement — so despite being newer,
+// gemini-3.6-flash is actually the correct/required model for most keys
+// right now. Occasional 503s from this model are normal transient
+// overload, not a wrong-model problem — that's what the retry logic
+// below is for. See ai.google.dev/gemini-api/docs/models for other options.
+const MODEL = 'gemini-3.6-flash';
 const QUESTION_COUNT = 10;
 const MAX_RECENT_QUESTIONS = 40;
 const MAX_RECENT_QUESTION_LEN = 300;
