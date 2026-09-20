@@ -4,7 +4,7 @@
       "maxDuration": 20
     },
     "api/quiz/*.js": {
-      "maxDuration": 30
+      "maxDuration": 40
     }
   }
 }

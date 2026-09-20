@@ -13,9 +13,13 @@ const { VALID_TOPICS } = require('../_lib/topics');
 // Environment Variables as GEMINI_API_KEY. See QUIZ_AI_SETUP.md for the
 // full walkthrough.
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-// Gemini model name — fast and cheap, well suited to short quiz-question
-// generation. See ai.google.dev/gemini-api/docs/models for other options.
-const MODEL = 'gemini-3.6-flash';
+// Gemini model name. Deliberately using the established 2.5 Flash rather
+// than the newest release: brand-new models see the heaviest demand and
+// return far more 503 (overloaded) errors — 2.5 Flash is fast, cheap, and
+// has a much longer track record of steady availability for a simple
+// structured JSON generation task like this one.
+// See ai.google.dev/gemini-api/docs/models for other options.
+const MODEL = 'gemini-2.5-flash';
 const QUESTION_COUNT = 10;
 const MAX_RECENT_QUESTIONS = 40;
 const MAX_RECENT_QUESTION_LEN = 300;
@@ -101,10 +105,20 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// How long a single Gemini call is allowed to take before we give up on
+// it and either retry or fall back. Keeping this well under the
+// function's own maxDuration (see vercel.json) guarantees a retry always
+// has a real chance to run, instead of the whole request eventually
+// dying to a platform-level 504 with no fallback ever being returned.
+const ATTEMPT_TIMEOUT_MS = 15000;
+
 // Makes one attempt to generate+parse+validate a batch of questions.
 // Returns either { ok: true, questions } or
 // { ok: false, source, status?, detail?, retriable }.
 async function attemptGeneration(lang, recentQuestions) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), ATTEMPT_TIMEOUT_MS);
+
   let response;
   try {
     response = await fetch(
@@ -123,10 +137,19 @@ async function attemptGeneration(lang, recentQuestions) {
             responseMimeType: 'application/json',
           },
         }),
+        signal: controller.signal,
       }
     );
   } catch (err) {
-    return { ok: false, source: 'exception', detail: err.message, retriable: true };
+    const timedOut = err.name === 'AbortError';
+    return {
+      ok: false,
+      source: timedOut ? 'timeout' : 'exception',
+      detail: timedOut ? `No response within ${ATTEMPT_TIMEOUT_MS}ms` : err.message,
+      retriable: true,
+    };
+  } finally {
+    clearTimeout(timeout);
   }
 
   if (!response.ok) {
