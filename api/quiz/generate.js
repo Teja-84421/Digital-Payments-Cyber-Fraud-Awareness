@@ -97,6 +97,71 @@ function validateQuestions(parsed) {
   return cleaned.length ? cleaned : null;
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Makes one attempt to generate+parse+validate a batch of questions.
+// Returns either { ok: true, questions } or
+// { ok: false, source, status?, detail?, retriable }.
+async function attemptGeneration(lang, recentQuestions) {
+  let response;
+  try {
+    response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': GEMINI_API_KEY,
+        },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: buildPrompt(lang, recentQuestions) }] }],
+          generationConfig: {
+            temperature: 1,
+            maxOutputTokens: 8000,
+            responseMimeType: 'application/json',
+          },
+        }),
+      }
+    );
+  } catch (err) {
+    return { ok: false, source: 'exception', detail: err.message, retriable: true };
+  }
+
+  if (!response.ok) {
+    const errText = await response.text().catch(() => '');
+    console.error('quiz generate: Gemini API error —', response.status, errText.slice(0, 300));
+    // 503 (model temporarily overloaded) and 429 (rate limit) are worth a
+    // single quick retry — everything else (bad key, malformed request,
+    // disabled API) will just fail the same way again.
+    const retriable = response.status === 503 || response.status === 429;
+    return { ok: false, source: 'ai_error', status: response.status, detail: errText.slice(0, 300), retriable };
+  }
+
+  const data = await response.json();
+  const rawText = data.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '';
+  const jsonText = stripCodeFences(rawText);
+
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonText);
+  } catch (parseErr) {
+    console.error('quiz generate: failed to parse AI response as JSON —', parseErr.message);
+    // A truncated/malformed response is often a one-off generation quirk —
+    // worth one retry before giving up.
+    return { ok: false, source: 'parse_error', retriable: true };
+  }
+
+  const questions = validateQuestions(parsed);
+  if (!questions) {
+    console.error('quiz generate: AI response failed validation');
+    return { ok: false, source: 'validation_error', retriable: true };
+  }
+
+  return { ok: true, questions };
+}
+
 module.exports = async (req, res) => {
   // Accept POST (preferred — carries recentQuestions in the body) and GET
   // (backward-compatible, ?lang=en, no dedup) so nothing breaks if some
@@ -115,57 +180,23 @@ module.exports = async (req, res) => {
     return res.status(200).json({ questions: null, source: 'not_configured' });
   }
 
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': GEMINI_API_KEY,
-        },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: buildPrompt(lang, recentQuestions) }] }],
-          generationConfig: {
-            temperature: 1,
-            maxOutputTokens: 3000,
-            responseMimeType: 'application/json',
-          },
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errText = await response.text().catch(() => '');
-      console.error('quiz generate: Gemini API error —', response.status, errText.slice(0, 300));
-      // status + a truncated detail message included so you can self-diagnose
-      // from the browser/Network tab without needing Vercel log access —
-      // e.g. 400 = bad API key or malformed request, 403 = key restricted/
-      // API not enabled, 429 = free-tier rate limit hit.
-      return res.status(200).json({ questions: null, source: 'ai_error', status: response.status, detail: errText.slice(0, 300) });
+  const MAX_ATTEMPTS = 2;
+  let last;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    last = await attemptGeneration(lang, recentQuestions);
+    if (last.ok) {
+      return res.status(200).json({ questions: last.questions, source: 'ai' });
     }
-
-    const data = await response.json();
-    const rawText = data.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '';
-    const jsonText = stripCodeFences(rawText);
-
-    let parsed;
-    try {
-      parsed = JSON.parse(jsonText);
-    } catch (parseErr) {
-      console.error('quiz generate: failed to parse AI response as JSON —', parseErr.message);
-      return res.status(200).json({ questions: null, source: 'parse_error' });
-    }
-
-    const questions = validateQuestions(parsed);
-    if (!questions) {
-      console.error('quiz generate: AI response failed validation');
-      return res.status(200).json({ questions: null, source: 'validation_error' });
-    }
-
-    return res.status(200).json({ questions, source: 'ai' });
-  } catch (err) {
-    console.error('quiz generate error:', err.message);
-    return res.status(200).json({ questions: null, source: 'exception' });
+    if (!last.retriable || attempt === MAX_ATTEMPTS) break;
+    await sleep(700); // brief pause before retrying a transient failure
   }
+
+  // Every attempt failed — hand back the last failure reason so the
+  // frontend's console warning stays accurate, and let it fall back.
+  return res.status(200).json({
+    questions: null,
+    source: last.source,
+    status: last.status,
+    detail: last.detail,
+  });
 };
