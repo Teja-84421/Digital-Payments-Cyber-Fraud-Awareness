@@ -958,7 +958,7 @@ async function fetchQuizQuestions(lang) {
         // Fell back server-side (not configured / AI error / bad response).
         // Surfacing this in the console makes misconfiguration easy to spot
         // instead of silently looking like "the same quiz every time".
-        console.warn('Quiz: using built-in fallback questions —', data.source, data.status ? `(status ${data.status})` : '');
+        console.warn('Quiz: using built-in fallback questions —', data.source, data.status ? `(status ${data.status})` : '', data.detail || '');
       }
       if (Array.isArray(data.questions) && data.questions.length) {
         rememberRecentQuestions(lang, data.questions);
