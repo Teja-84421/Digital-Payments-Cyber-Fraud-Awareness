@@ -1592,24 +1592,34 @@ function answer(i) {
   const nextBtn = document.getElementById('quiz-next');
   nextBtn.style.display = 'inline-block';
   if (current >= activeQuestions.length - 1) {
-    // Last question answered — clear everything else away and show ONLY
-    // the final score in the question area, plus a "Retake Quiz" button.
+    // Last question — show its correct/wrong feedback exactly like any
+    // other question first. Only once the learner clicks through do we
+    // clear it away, show a brief "Loading quiz score…" transition, and
+    // then reveal the final score.
     submitQuizAttempt(score, activeQuestions.length);
     const qEl = document.getElementById('quiz-question');
     const optsEl = document.getElementById('quiz-options');
-    if (qEl) qEl.textContent = `${quizCompletedLabel()} ${scoreLabel()}: ${score} / ${activeQuestions.length}`;
-    if (optsEl) optsEl.innerHTML = ''; // no leftover question/options once finished
-    feedback.textContent = '';
-    nextBtn.textContent = retakeQuizLabel();
+    nextBtn.textContent = seeScoreLabel();
     nextBtn.onclick = () => {
-      // Simulate loading fresh questions for 5 seconds before the next set appears.
-      nextBtn.disabled = true;
+      if (optsEl) optsEl.innerHTML = '';
+      feedback.textContent = '';
       nextBtn.style.display = 'none';
-      if (qEl) qEl.textContent = loadingLabel();
+      if (qEl) qEl.textContent = loadingScoreLabel();
       setTimeout(() => {
-        nextBtn.disabled = false;
-        startNewQuizAttempt();
-      }, 5000);
+        if (qEl) qEl.textContent = `${quizCompletedLabel()} ${scoreLabel()}: ${score} / ${activeQuestions.length}`;
+        nextBtn.textContent = retakeQuizLabel();
+        nextBtn.style.display = 'inline-block';
+        nextBtn.onclick = () => {
+          // Simulate loading fresh questions for 5 seconds before the next set appears.
+          nextBtn.disabled = true;
+          nextBtn.style.display = 'none';
+          if (qEl) qEl.textContent = loadingLabel();
+          setTimeout(() => {
+            nextBtn.disabled = false;
+            startNewQuizAttempt();
+          }, 5000);
+        };
+      }, 2000);
     };
   }
 }
@@ -1639,6 +1649,18 @@ function loadingLabel() {
   if (currentLang === 'hi') return 'नए प्रश्न लाए जा रहे हैं…';
   if (currentLang === 'te') return 'కొత్త ప్రశ్నలు లోడ్ అవుతున్నాయి…';
   return 'Loading new questions…';
+}
+
+function seeScoreLabel() {
+  if (currentLang === 'hi') return 'अपना स्कोर देखें →';
+  if (currentLang === 'te') return 'నా స్కోర్ చూడండి →';
+  return 'See My Score →';
+}
+
+function loadingScoreLabel() {
+  if (currentLang === 'hi') return '⏳ क्विज़ स्कोर लोड हो रहा है…';
+  if (currentLang === 'te') return '⏳ క్విజ్ స్కోర్ లోడ్ అవుతోంది…';
+  return '⏳ Loading quiz score…';
 }
 
 function quizCompletedLabel() {
