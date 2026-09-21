@@ -668,79 +668,654 @@ document.addEventListener('DOMContentLoaded', () => {
 /* =====================
    QUIZ
    ===================== */
-const fallbackQuestionsData = {
-  en: [
+/* =====================
+   QUIZ QUESTION BANK — 100 fixed English questions (10 sets of 10)
+   No API, no AI, no network call of any kind. Every set below always
+   covers each of the 8 fraud topics exactly once, plus 2 general
+   cyber-crime-reporting questions, matching the original quiz format.
+   See getNextEnglishSet() further down for how a set is picked each
+   time the quiz (re)starts.
+   ===================== */
+const enTopics = {
+  fraud3: [ // Fake QR code fraud
     {
       q: "You receive a QR code on WhatsApp from an unknown person saying 'Scan this to receive ₹5000'. What do you do?",
       opts: ["Scan it immediately", "Ask them to send again", "Never scan — in UPI, scanning a QR always means you PAY", "Call your bank first"],
-      ans: 2,
-      topic: 'fraud3',
+      ans: 2, topic: 'fraud3',
       exp: "✅ Correct! Scanning a QR code in UPI always initiates a payment FROM you. You can NEVER receive money by scanning a QR code."
     },
     {
+      q: "A buyer on Facebook Marketplace sends you a QR code and says scanning it will 'verify your account' before he pays you. What's the reality?",
+      opts: ["Scanning verifies your account safely", "Scanning it will make you pay him, not the other way round", "It speeds up the payment", "It's required by Facebook"],
+      ans: 1, topic: 'fraud3',
+      exp: "✅ Correct! No genuine payment process ever needs YOU to scan a QR before receiving money — scanning always triggers an outgoing payment."
+    },
+    {
+      q: "A caller says an EMI mandate was wrongly set up on your account and asks you to scan a QR code to 'cancel' it. What actually happens if you scan?",
+      opts: ["The mandate is cancelled instantly", "Nothing, it's just a formality", "Money is deducted from your account", "Your CIBIL score improves"],
+      ans: 2, topic: 'fraud3',
+      exp: "✅ Correct! Scanning a QR never cancels anything — it authorizes a payment. Cancel mandates only through your bank's official app or branch."
+    },
+    {
+      q: "You post a 'Wanted to Buy' ad. A 'buyer' sends you a QR code claiming it 'confirms he already sent the money'. What should you do?",
+      opts: ["Scan it to confirm receipt", "Check your bank account/app directly for the credit, never scan to 'confirm'", "Ask him to send a screenshot instead", "Trust him since he contacted you first"],
+      ans: 1, topic: 'fraud3',
+      exp: "✅ Correct! Only your own bank app or SMS alert can confirm money was received. A QR code is never used to 'confirm' an incoming payment."
+    },
+    {
+      q: "Someone claiming to be from a payment gateway company sends you a QR code 'for KYC verification'. Is scanning a QR ever part of KYC?",
+      opts: ["Yes, it's a standard KYC step", "No — KYC never requires scanning a payment QR code", "Only for business accounts", "Only if the caller sounds official"],
+      ans: 1, topic: 'fraud3',
+      exp: "✅ Correct! KYC verification never involves scanning a UPI QR code — that only ever initiates a payment, never an identity check."
+    },
+    {
+      q: "A fraudster pastes a fake QR sticker over a shop's genuine UPI QR code at the counter. Who does the customer's payment go to if they scan it?",
+      opts: ["The shop, as usual", "The fraudster who pasted the sticker", "It bounces back automatically", "The bank flags it before it's sent"],
+      ans: 1, topic: 'fraud3',
+      exp: "✅ Correct! A tampered QR sticker redirects payment to the fraudster's own UPI ID. Shopkeepers and customers should regularly check the printed UPI ID matches the shop's own."
+    },
+    {
+      q: "Someone messages 'I accidentally sent you extra money, please scan this QR to refund the difference'. What's really going on?",
+      opts: ["A genuine refund request", "A scam — scanning the QR will pay them, not refund anything", "A bank-mandated verification", "Nothing, it's harmless"],
+      ans: 1, topic: 'fraud3',
+      exp: "✅ Correct! This is a common trick — the 'refund' QR is just another payment request. Check your own account for any actual extra credit first, and never scan to 'return' money."
+    },
+    {
+      q: "A fake job recruiter tells you to scan a QR code to 'receive your joining bonus'. What should you expect?",
+      opts: ["The bonus credited instantly", "Money will be deducted from your account instead", "A confirmation SMS from HR", "Nothing happens either way"],
+      ans: 1, topic: 'fraud3',
+      exp: "✅ Correct! No employer ever pays a bonus by asking you to scan a QR — that action only ever sends money out of your account."
+    },
+    {
+      q: "A scammer keeps sending you QR code after QR code saying 'try this one, that one didn't work'. What does this behaviour suggest?",
+      opts: ["A technical glitch on their end", "They're trying to trick you into scanning one out of persistence/urgency", "Their app is outdated", "It's a sign they are trustworthy"],
+      ans: 1, topic: 'fraud3',
+      exp: "✅ Correct! Repeated QR codes with manufactured urgency is a pressure tactic. If any QR is meant to make you receive money, stop and verify independently."
+    },
+    {
+      q: "What is the one universal truth you should always remember about UPI QR codes?",
+      opts: ["Scanning a QR can either pay or receive money, depending on the app", "Scanning a QR code ALWAYS initiates a payment from you, never a receipt", "QR codes are only used by shops", "QR codes always require a PIN to be safe"],
+      ans: 1, topic: 'fraud3',
+      exp: "✅ Correct! No matter who sends it or what they claim, scanning a QR code always means you are about to pay — never receive."
+    },
+  ],
+  fraud2: [ // Vishing
+    {
       q: "A 'bank officer' calls and says your KYC is expired. He asks for your OTP to 'update' it. What do you do?",
       opts: ["Share OTP quickly to avoid account block", "Ask him to call back later", "Hang up — banks NEVER ask for OTP", "Share only half the OTP"],
-      ans: 2,
-      topic: 'fraud2',
+      ans: 2, topic: 'fraud2',
       exp: "✅ Correct! No bank, government body, or app will ever ask for your OTP. This is a vishing (voice phishing) scam."
     },
     {
+      q: "A caller claiming to be from 'RBI' says a fraudulent transaction is happening on your account right now and asks you to share the OTP to 'block' it. What should you do?",
+      opts: ["Share it immediately to stop the fraud", "Hang up — RBI never calls individuals directly or asks for OTPs", "Ask for his employee ID first", "Share it only if he knows your name"],
+      ans: 1, topic: 'fraud2',
+      exp: "✅ Correct! RBI does not call individual customers about their accounts or ask for OTPs. This urgency is a manipulation tactic."
+    },
+    {
+      q: "Someone claiming to be your UPI app's customer care asks you to read out the OTP you just received, saying it's needed to 'process your refund'. What is this OTP actually for?",
+      opts: ["Confirming the refund", "Authorizing a payment OUT of your account", "Verifying your identity only", "Nothing important"],
+      ans: 1, topic: 'fraud2',
+      exp: "✅ Correct! An OTP received during a 'refund' call is almost always for an outgoing payment/PIN reset — never share it with a caller."
+    },
+    {
+      q: "A caller says he's from a courier company and your parcel is held at customs; you must share an OTP to pay a small 'customs duty' and release it. What should you do?",
+      opts: ["Share the OTP to release the parcel", "Hang up and verify directly with the courier company via its official number", "Ask him to call your family instead", "Pay only through the number he gives you"],
+      ans: 1, topic: 'fraud2',
+      exp: "✅ Correct! Genuine customs/courier dues are paid through official, verifiable channels — never by sharing an OTP over a call."
+    },
+    {
+      q: "Someone calls claiming to be from your credit card company, saying they need your CVV and an OTP to 'increase your credit limit'. Is this legitimate?",
+      opts: ["Yes, this is standard verification", "No — no card company needs your CVV/OTP over a call for this", "Only if they know your card's last 4 digits", "Yes, if the call comes from a toll-free number"],
+      ans: 1, topic: 'fraud2',
+      exp: "✅ Correct! Credit limit changes never require you to share your CVV or OTP over a phone call. This is a card-fraud attempt."
+    },
+    {
+      q: "A caller says your EPFO/PF account is under 'verification' and asks for your OTP along with your Aadhaar number. What should you suspect?",
+      opts: ["A routine EPFO process", "A vishing scam trying to steal your identity and account access", "A mandatory yearly check", "Nothing unusual"],
+      ans: 1, topic: 'fraud2',
+      exp: "✅ Correct! EPFO never asks for OTPs over calls. Combining Aadhaar with an OTP request is a strong sign of identity/account theft."
+    },
+    {
+      q: "An 'insurance agent' calls saying your policy is about to lapse and asks for an OTP to 'extend' it immediately. What should you do?",
+      opts: ["Share the OTP to avoid losing the policy", "Hang up and check your policy status directly with the insurer's app/website", "Ask him to WhatsApp the OTP request", "Give the OTP only if he has your policy number"],
+      ans: 1, topic: 'fraud2',
+      exp: "✅ Correct! Insurers never need an OTP over a call to extend a policy. Verify any policy concerns directly through official channels."
+    },
+    {
+      q: "Caller ID shows your bank's real customer-care number, and the caller asks for your card details. Since the number looks genuine, is it safe to trust?",
+      opts: ["Yes, caller ID can never be faked", "No — caller ID can be spoofed to look like a real number", "Only banks can display their real number", "Yes, if the call has good audio quality"],
+      ans: 1, topic: 'fraud2',
+      exp: "✅ Correct! Caller ID spoofing lets scammers display any number, including a real bank number. Never share sensitive details based on caller ID alone."
+    },
+    {
+      q: "A caller says your banking app has a 'technical glitch' and you must share the OTP sent to your phone to 'fix' it. What's really happening?",
+      opts: ["A genuine technical support call", "The OTP is being used to authorize a transaction from your account", "A routine app update", "Nothing — it's harmless to share"],
+      ans: 1, topic: 'fraud2',
+      exp: "✅ Correct! 'Technical glitches' needing your OTP is a common script — the OTP is actually authorizing a fraudulent transaction."
+    },
+    {
+      q: "What should you always remember about any customer-care call — even one that sounds convincing — asking you for an OTP?",
+      opts: ["Share it if they already know your name and account number", "No legitimate customer care will ever ask you to share an OTP over a call", "Share it only for 'urgent' matters", "It's fine if they call from an official-sounding number"],
+      ans: 1, topic: 'fraud2',
+      exp: "✅ Correct! An OTP is meant only for you — no legitimate organization will ever ask you to read it out over a phone call, no matter how convincing they sound."
+    },
+  ],
+  fraud4: [ // Online marketplace scams
+    {
       q: "You sold something on OLX. The 'buyer' sends ₹1 and asks you to enter your UPI PIN to 'collect the full payment'. What happens?",
       opts: ["You receive the full amount", "Nothing happens", "You send money to the scammer", "Your account gets verified"],
-      ans: 2,
-      topic: 'fraud4',
+      ans: 2, topic: 'fraud4',
       exp: "✅ Correct! Entering your UPI PIN always authorizes an outgoing payment, never an incoming one. This is the classic OLX QR/PIN scam."
     },
     {
+      q: "You're buying an item from a classifieds ad. The seller asks for a 'token advance' via UPI before you can even see the item in person, then stops replying. What went wrong?",
+      opts: ["Nothing — this is standard practice", "You paid an advance to someone with no accountability and no item to show for it", "The seller just forgot to reply", "The UPI app malfunctioned"],
+      ans: 1, topic: 'fraud4',
+      exp: "✅ Correct! Never pay an advance to a stranger before verifying the item and seller in person; classifieds fraud often ends exactly this way."
+    },
+    {
+      q: "A 'buyer' for your car ad claims to be an army officer posted abroad and asks you to ship the item first, promising payment via a screenshot they'll send. What's the red flag?",
+      opts: ["Army officers can't buy online, so it's automatically fake", "Relying on a screenshot instead of your own bank confirmation is the red flag", "There's no red flag, this is normal", "The price they offered was too low"],
+      ans: 1, topic: 'fraud4',
+      exp: "✅ Correct! A payment screenshot can be faked. Only trust money actually credited and visible in your own bank/UPI app — never ship first based on a promise."
+    },
+    {
+      q: "A buyer sends you a screenshot claiming payment is done and asks you to hand over the goods before you've checked your bank. What should you do?",
+      opts: ["Trust the screenshot and release the goods", "Check your actual bank/UPI app balance and SMS alerts before releasing anything", "Ask for a second screenshot to confirm", "Release the goods since he seems honest"],
+      ans: 1, topic: 'fraud4',
+      exp: "✅ Correct! Screenshots are easy to fake or edit. Always confirm the credit has actually reflected in your own account first."
+    },
+    {
+      q: "A 'buyer' insists on a video call and asks you to share your screen while they 'verify' something on your banking app, but they're actually watching for your OTP. What should you do?",
+      opts: ["Share your screen since it's just a video call", "Refuse — never share your screen showing banking apps with strangers", "Share it but mute the audio", "Only share it if the call is recorded"],
+      ans: 1, topic: 'fraud4',
+      exp: "✅ Correct! Screen-sharing your banking app with a stranger, for any reason, lets them capture OTPs and PINs live."
+    },
+    {
+      q: "A phone is listed at a suspiciously low price on a classifieds site, and the seller demands full payment upfront with no meeting. What should you do?",
+      opts: ["Pay quickly before someone else buys it", "Be highly suspicious — genuine sellers rarely demand full upfront payment with no verification", "Assume it's a clearance sale", "Ask for a bigger discount instead"],
+      ans: 1, topic: 'fraud4',
+      exp: "✅ Correct! Deals that are 'too good to be true' combined with full upfront payment and no in-person option are a classic scam pattern."
+    },
+    {
+      q: "A seller pressures you to complete payment 'right now' because 'many other buyers are interested'. What does this manufactured urgency usually indicate?",
+      opts: ["It's just good salesmanship", "It's a pressure tactic used to stop you from thinking it through or verifying the deal", "It means the item is genuinely popular", "It guarantees the seller is trustworthy"],
+      ans: 1, topic: 'fraud4',
+      exp: "✅ Correct! Scammers create false urgency so you skip normal checks. A genuine seller won't mind you taking a moment to verify."
+    },
+    {
+      q: "You get a call from someone claiming to be 'OLX support' who says they need to verify your listing's safety and asks for the OTP sent to your phone. What should you do?",
+      opts: ["Share the OTP since it's for your own listing's safety", "Refuse — OLX/marketplace support never asks for OTPs over a call", "Share it only if they know your listing details", "Ask them to email you instead, then share it"],
+      ans: 1, topic: 'fraud4',
+      exp: "✅ Correct! No marketplace's real support team ever needs your OTP to 'verify' a listing — this is a scam trying to hijack your account."
+    },
+    {
+      q: "A buyer insists you download a specific unfamiliar app 'to confirm payment receipt'. Is this ever necessary for a normal UPI transaction?",
+      opts: ["Yes, some apps require this for verification", "No — a genuine UPI payment reflects directly in your own banking/UPI app, no extra app needed", "Only for high-value transactions", "Only if the buyer is from another city"],
+      ans: 1, topic: 'fraud4',
+      exp: "✅ Correct! You never need to install a buyer-suggested app to 'receive' a payment — that's a common way to install fraudulent remote-access or fake payment apps."
+    },
+    {
+      q: "What is the safest way to complete an online marketplace deal with a stranger?",
+      opts: ["Trust screenshots and complete payment in advance", "Meet in a safe public place, verify the item, and use cash or immediate UPI transfer confirmed in your own app", "Always ship first to build trust", "Share your UPI PIN so they can 'test' the payment"],
+      ans: 1, topic: 'fraud4',
+      exp: "✅ Correct! In-person verification in a safe location, with payment confirmed directly in your own app, avoids nearly all classifieds scams."
+    },
+  ],
+  fraud1: [ // Phishing
+    {
       q: "Which of these is a legitimate way your bank will contact you?",
       opts: ["WhatsApp message asking to update KYC via a link", "Call asking for your card number and CVV", "Email from bank's official domain with no attachments", "SMS asking you to call an unknown number"],
-      ans: 2,
-      topic: 'fraud1',
+      ans: 2, topic: 'fraud1',
       exp: "✅ Correct! Legitimate bank emails come from official domains and never ask for sensitive information or have suspicious attachments."
     },
     {
-      q: "You lost money to a cyber fraud. What is the FIRST thing you should do?",
-      opts: ["Post about it on social media", "Call 1930 (Cyber Crime Helpline) immediately", "Wait and see if money comes back", "Change your UPI PIN"],
-      ans: 1,
-      topic: null,
-      exp: "✅ Correct! Call 1930 immediately — it's the National Cyber Crime Helpline. Early reporting maximizes the chance of fund recovery."
+      q: "You get an email 'from your bank' warning your account will be blocked in 24 hours unless you click a link to 'sbi-security-update.com'. What should you do?",
+      opts: ["Click and enter your details quickly to avoid the block", "Reply to the email asking for clarification", "Delete/report it — banks don't send urgent 'account will be blocked' links, and the domain isn't the bank's own", "Forward it to friends using the same link"],
+      ans: 2, topic: 'fraud1',
+      exp: "✅ Correct! A domain that isn't the bank's official one, plus manufactured urgency, is a classic phishing pattern. Never click such links."
     },
+    {
+      q: "A pop-up says 'You've won cashback from your payment app! Click to claim' and then asks for your UPI PIN to 'activate' the reward. What should you do?",
+      opts: ["Enter the PIN to claim the reward", "Close the pop-up — a genuine reward never requires your UPI PIN to 'activate'", "Enter half the PIN to test it", "Screenshot it and share on social media first"],
+      ans: 1, topic: 'fraud1',
+      exp: "✅ Correct! Your UPI PIN is only ever needed to authorize a payment — never to 'claim' or 'activate' a reward. This is a phishing trick to steal your PIN."
+    },
+    {
+      q: "You get an SMS saying 'Your account will be suspended, update your PAN at http://icici-kyc-verify.co'. What's suspicious about this?",
+      opts: ["Nothing, it looks official", "The domain doesn't match the bank's real website — a classic phishing sign", "The message is too short to be fake", "It's suspicious only if sent at night"],
+      ans: 1, topic: 'fraud1',
+      exp: "✅ Correct! Always check the actual domain in a link carefully — banks only use their own verified domains, never look-alike or unrelated ones."
+    },
+    {
+      q: "You receive an email attachment named 'Refund_Form.pdf.exe' claiming to be from the Income Tax Department. What's the safest action?",
+      opts: ["Open it to check your refund status", "Don't open it — a '.exe' file disguised as a PDF is a strong sign of malware/phishing", "Forward it to your accountant to open first", "Open it only on your phone, not your computer"],
+      ans: 1, topic: 'fraud1',
+      exp: "✅ Correct! Executable files disguised with double extensions like '.pdf.exe' are a common malware delivery method — never open them."
+    },
+    {
+      q: "A fake login page looks identical to your bank's real website and asks for your net-banking password. What's the most reliable way to spot it's fake?",
+      opts: ["The page design will always look different", "Carefully check the URL/domain in the address bar for spelling errors or a mismatched domain", "Fake pages never use HTTPS", "There's no way to tell the difference"],
+      ans: 1, topic: 'fraud1',
+      exp: "✅ Correct! Visual design can be copied perfectly, but the actual domain in the address bar cannot be faked as your bank's real one — always check it carefully."
+    },
+    {
+      q: "You get a WhatsApp message with your bank's logo saying 'Your KYC documents are outdated, update now' with a link. What's the red flag here?",
+      opts: ["The logo looks too professional", "Banks don't send unsolicited KYC-update links over WhatsApp with urgency", "WhatsApp messages are always fake", "Nothing, this is standard practice"],
+      ans: 1, topic: 'fraud1',
+      exp: "✅ Correct! An unsolicited link with urgency, sent via WhatsApp and using a copied logo, is a classic phishing setup — never click it."
+    },
+    {
+      q: "An email says you've won ₹10 lakh from a bank lottery you never entered, but you must first pay a 'processing fee' to claim it. What is this?",
+      opts: ["A genuine bank promotion", "A phishing/advance-fee scam — you never pay to receive a prize you never entered for", "A tax refund process", "A loyalty reward program"],
+      ans: 1, topic: 'fraud1',
+      exp: "✅ Correct! Legitimate prizes never require an upfront 'fee' to release them. This is a classic advance-fee phishing scam."
+    },
+    {
+      q: "You get a text with a shortened link (like bit.ly/xyz) claiming to be your electricity board asking you to pay a pending bill immediately. What should you do?",
+      opts: ["Click the shortened link and pay right away", "Ignore the link and check your bill status directly on the electricity board's official app/website", "Reply 'STOP' to the SMS", "Forward it to the electricity board's number"],
+      ans: 1, topic: 'fraud1',
+      exp: "✅ Correct! Shortened links hide the real destination. Always check bills directly through the utility's official app or website instead of clicking SMS links."
+    },
+    {
+      q: "What is the safest way to check whether a bank communication (email, SMS, or call) is genuine?",
+      opts: ["Click the link and see what happens", "Independently type the bank's official website address yourself, or call the number printed on your card", "Reply to the message asking if it's real", "Trust it if it has the bank's logo"],
+      ans: 1, topic: 'fraud1',
+      exp: "✅ Correct! Always verify independently — type the bank's known URL yourself or call the number on your card/passbook, never one given in the suspicious message itself."
+    },
+  ],
+  fraud5: [ // Screen-sharing remote access fraud
     {
       q: "Someone claiming to be from tech support calls you and asks you to install AnyDesk or TeamViewer to 'fix an issue' with your bank app. What should you do?",
       opts: ["Install it and let them control your screen", "Only share your screen, not control", "Refuse — never give screen-sharing/remote access to unknown callers", "Install it but close your banking app first"],
-      ans: 2,
-      topic: 'fraud5',
+      ans: 2, topic: 'fraud5',
       exp: "✅ Correct! Remote-access apps let scammers see your OTPs and PINs live and drain your account. Never install these for unsolicited callers."
     },
     {
+      q: "A 'bank employee' calls saying they need to install a remote-access app on your phone to 'reverse' a wrongly debited transaction. Is this a real bank process?",
+      opts: ["Yes, banks sometimes need remote access to fix errors", "No — banks never need remote access to your device to reverse a transaction", "Only for large amounts", "Only if you initiate the call yourself"],
+      ans: 1, topic: 'fraud5',
+      exp: "✅ Correct! Transaction reversals are handled entirely on the bank's end — they never require installing remote-access software on your phone."
+    },
+    {
+      q: "You searched Google for a company's 'customer care number', called it, and they asked you to install a remote-access app. What's the danger here?",
+      opts: ["No danger, since you found the number yourself", "Fake customer-care numbers are often planted online specifically to trick you into installing such apps", "Google always verifies phone numbers", "There's no risk if the call is short"],
+      ans: 1, topic: 'fraud5',
+      exp: "✅ Correct! Scammers plant fake 'customer care' numbers online. Always get support numbers only from the company's official app or website, and never install remote apps for any caller."
+    },
+    {
+      q: "A platform claims your app-store purchase needs a 'refund', but first you must install remote-access software to 'process' it. What should you do?",
+      opts: ["Install it since it's for a refund", "Refuse — refunds never require installing remote-access software", "Install it and immediately uninstall after", "Ask them to process it without remote access, and hang up if they refuse"],
+      ans: 1, topic: 'fraud5',
+      exp: "✅ Correct! No legitimate refund process ever needs remote access to your device. This is a setup to steal banking credentials."
+    },
+    {
+      q: "During a video call, a fraudster specifically asks you to enable 'screen share' to help 'troubleshoot' your UPI app. What is the real goal?",
+      opts: ["Genuinely helping fix your app", "Watching your screen live to capture your PIN, OTP, or account details", "Improving call quality", "Verifying your identity"],
+      ans: 1, topic: 'fraud5',
+      exp: "✅ Correct! Screen-sharing during a banking task lets a scammer watch everything you type in real time, including OTPs and PINs."
+    },
+    {
+      q: "Once a scammer has remote access to your phone or computer via an app like AnyDesk, what can they typically do?",
+      opts: ["Only see your wallpaper", "See everything on your screen and control your device just like you can, including opening banking apps", "Only access your camera", "Nothing without your permission each time"],
+      ans: 1, topic: 'fraud5',
+      exp: "✅ Correct! Remote-access apps give the caller full visibility and control of your device, exactly as if they were sitting in front of it."
+    },
+    {
+      q: "A caller insists you keep a remote-access app running 'in the background' while you carry out your own banking. What's the danger in this specifically?",
+      opts: ["No danger if you're the one typing", "They can watch and record every keystroke and screen you access, including OTPs, live", "It only slows down your phone", "It's only risky if you close the banking app"],
+      ans: 1, topic: 'fraud5',
+      exp: "✅ Correct! A 'background' remote session still lets the scammer see and record your screen in real time — it's just as dangerous as an active call."
+    },
+    {
+      q: "Someone claiming to be from the 'electricity board' says you were overbilled and asks you to install AnyDesk to process an urgent refund. What should you do?",
+      opts: ["Install it to get the refund faster", "Refuse — utility refunds are processed automatically through your bank account, never via remote-access apps", "Ask for a smaller refund without the app", "Install it just for this one refund"],
+      ans: 1, topic: 'fraud5',
+      exp: "✅ Correct! No utility company processes refunds by remotely accessing your device — refunds simply get credited to your registered bank account."
+    },
+    {
+      q: "A pop-up claiming to be a 'software update' asks you to install a screen-sharing tool to complete 'verification'. Is this legitimate?",
+      opts: ["Yes, updates sometimes need this", "No — genuine software updates never require installing a separate screen-sharing tool for 'verification'", "Only if the pop-up looks professional", "Only on older phones"],
+      ans: 1, topic: 'fraud5',
+      exp: "✅ Correct! Real software updates never ask you to install a screen-sharing app as part of the process. Close and ignore such pop-ups."
+    },
+    {
+      q: "What is the single best rule to remember about remote-access apps (AnyDesk, TeamViewer, QuickSupport, etc.) and banking?",
+      opts: ["Only install them if the caller sounds professional", "Never install or activate them for any unsolicited caller, especially around anything related to your bank or payments", "They're safe as long as you watch the screen", "Only risky if you share your PIN separately"],
+      ans: 1, topic: 'fraud5',
+      exp: "✅ Correct! No legitimate bank, company, or support team ever needs remote access to your personal device — treat every such request as fraud."
+    },
+  ],
+  fraud6: [ // SIM swap fraud
+    {
       q: "Your phone suddenly loses network signal for hours and you later find your SIM was reissued to someone else. This is most likely which fraud?",
       opts: ["Phishing", "SIM swap fraud", "QR code fraud", "Ponzi scheme"],
-      ans: 1,
-      topic: 'fraud6',
+      ans: 1, topic: 'fraud6',
       exp: "✅ Correct! In SIM swap fraud, criminals get your number reissued on a new SIM to intercept OTPs. Report a sudden 'No Service' status to your telecom operator immediately."
     },
     {
+      q: "You get an SMS about a 'SIM swap/replacement request' that you never initiated. What should you do immediately?",
+      opts: ["Ignore it, it's probably spam", "Contact your telecom operator immediately to block/verify the request, and alert your bank", "Wait for the new SIM to arrive to check it", "Reply to the SMS asking who requested it"],
+      ans: 1, topic: 'fraud6',
+      exp: "✅ Correct! An unrequested SIM swap message needs urgent action — contact your telecom provider right away and alert your bank, since OTPs are the target."
+    },
+    {
+      q: "A scammer first collects your personal details via a phishing scam, then requests a duplicate SIM from your telecom provider. What is the purpose of this second step?",
+      opts: ["To sell your number", "To intercept OTPs sent to your registered mobile number and take over your bank accounts", "To spam your contacts", "To improve their own network coverage"],
+      ans: 1, topic: 'fraud6',
+      exp: "✅ Correct! SIM swap is usually the final step after identity theft — it lets the scammer receive your OTPs directly and drain your accounts."
+    },
+    {
+      q: "Your phone suddenly shows 'No Service' with no explanation, and shortly after, a large unauthorized transaction happens on your bank account. What likely occurred?",
+      opts: ["A random network outage", "A SIM swap attack — your number was moved to the scammer's SIM to receive the OTP", "A software bug in your banking app", "Nothing related, just a coincidence"],
+      ans: 1, topic: 'fraud6',
+      exp: "✅ Correct! Losing signal unexpectedly, followed by unauthorized transactions, is the classic sign of an in-progress SIM swap attack."
+    },
+    {
+      q: "What telecom-side precaution can help reduce the risk of SIM swap fraud succeeding against you?",
+      opts: ["Sharing your Aadhaar number publicly", "Setting a strong PIN/password with your telecom provider for any SIM-related requests, and reporting lost SIMs immediately", "Keeping your old SIM inactive but registered", "Using the same PIN as your bank account"],
+      ans: 1, topic: 'fraud6',
+      exp: "✅ Correct! A telecom-account PIN/password adds a layer of protection against unauthorized SIM swap requests being processed."
+    },
+    {
+      q: "A caller pretending to be from your telecom operator offers a 'free SIM upgrade' and asks for your Aadhaar-linked mobile details. What's the risk?",
+      opts: ["No risk, upgrades are common", "This information can be used to fraudulently request a SIM swap in your name", "It only affects call quality", "It's risk-free if he knows your name"],
+      ans: 1, topic: 'fraud6',
+      exp: "✅ Correct! Sharing identity/SIM details with an unsolicited caller gives them exactly what's needed to request a fraudulent SIM swap."
+    },
+    {
+      q: "What is the correct official step to take with your telecom operator if you suspect a SIM swap attempt against you?",
+      opts: ["Wait it out and see if service returns on its own", "Visit or call your telecom operator's official store/helpline immediately to verify and block any pending SIM change request", "Post about it on social media first", "Buy a new SIM from any local shop"],
+      ans: 1, topic: 'fraud6',
+      exp: "✅ Correct! Only your telecom operator's official channels can verify, pause, or block a SIM change request in progress."
+    },
+    {
+      q: "Should you ignore an SMS saying 'Your SIM swap/replacement request is being processed' if you never requested one?",
+      opts: ["Yes, it's probably a mistake", "No — act on it immediately by contacting your telecom operator, since this could be a live fraud attempt", "Yes, wait for the new SIM before doing anything", "Only respond if it happens twice"],
+      ans: 1, topic: 'fraud6',
+      exp: "✅ Correct! Any such message you didn't initiate is a serious warning sign — treat it as an active fraud attempt and act immediately."
+    },
+    {
+      q: "A scammer already has your PAN and Aadhaar details from an earlier phishing scam, and now wants your registered mobile number for 'further verification'. Why is this combination especially dangerous?",
+      opts: ["It isn't dangerous by itself", "Together, these details can be used to convincingly request a SIM swap and then intercept your OTPs", "It only affects your Aadhaar card", "PAN and Aadhaar are unrelated to mobile numbers"],
+      ans: 1, topic: 'fraud6',
+      exp: "✅ Correct! Identity documents plus your mobile number are exactly what's needed to impersonate you for a SIM swap request — never share this combination with unverified callers."
+    },
+    {
+      q: "What is a very early warning sign that a SIM swap attack may be in progress against you?",
+      opts: ["Your phone getting slightly warm", "Sudden, unexplained loss of network signal or 'No Service' status for an extended period", "Receiving too many OTPs at once", "Your battery draining faster than usual"],
+      ans: 1, topic: 'fraud6',
+      exp: "✅ Correct! An unexplained, prolonged loss of signal — especially if you didn't change SIMs yourself — is the earliest sign something may be wrong."
+    },
+  ],
+  fraud7: [ // Predatory instant loan app fraud
+    {
       q: "An app promises an instant loan with no paperwork, but after disbursing a small amount it demands a huge 'processing fee' and threatens to leak your contacts. What is this?",
       opts: ["A legitimate NBFC offer", "A predatory instant loan app scam", "A government loan scheme", "A credit score booster"],
-      ans: 1,
-      topic: 'fraud7',
+      ans: 1, topic: 'fraud7',
       exp: "✅ Correct! Unregulated instant-loan apps often use harassment and data misuse as extortion tactics. Only use RBI-registered lenders."
     },
     {
+      q: "A loan app asks for full access to your phone contacts and photo gallery before even approving your loan. Is this normal for RBI-registered lenders?",
+      opts: ["Yes, all lending apps need this", "No — RBI-registered lenders never need this level of access to approve a loan", "Only for very large loan amounts", "Only for first-time borrowers"],
+      ans: 1, topic: 'fraud7',
+      exp: "✅ Correct! Excessive permission requests (contacts, gallery, SMS) are a major red flag used later for harassment if repayment is delayed."
+    },
+    {
+      q: "After taking a small loan, the app starts sending abusive/threatening messages to your contacts claiming you 'defaulted'. What should you do?",
+      opts: ["Pay whatever they demand immediately to stop it", "Document everything and report it to the cyber crime helpline (1930) and cybercrime.gov.in", "Ignore it and hope it stops", "Delete the app and forget about it"],
+      ans: 1, topic: 'fraud7',
+      exp: "✅ Correct! Harassment through your contacts is illegal. Preserve evidence and report it — don't pay extortion demands, which often continue regardless."
+    },
+    {
+      q: "How can you check whether a lending app is legitimate before installing it?",
+      opts: ["Check its star rating on the app store only", "Verify it's linked to an RBI-registered NBFC/bank, listed on the RBI's official list", "Trust it if it has millions of downloads", "Trust it if a friend used it once"],
+      ans: 1, topic: 'fraud7',
+      exp: "✅ Correct! Always verify the lender is an RBI-registered NBFC or bank — this is listed on the RBI's official website, not just judged by app store popularity."
+    },
+    {
+      q: "A loan app charges an interest rate far higher than any bank or NBFC and hides the total repayment cost until after you accept. What should you do?",
+      opts: ["Accept it since you need the money urgently", "Avoid it — hidden, excessive costs are a hallmark of predatory lending", "Negotiate the rate directly with the app", "Accept but pay late deliberately"],
+      ans: 1, topic: 'fraud7',
+      exp: "✅ Correct! Extremely high, hidden interest rates are designed to trap borrowers in unpayable debt — a key predatory-lending red flag."
+    },
+    {
+      q: "You're pressured to repay a loan within 7 days with a steep penalty for even a single day's delay. Is this normal lending practice?",
+      opts: ["Yes, all loans work this way", "No — this kind of extreme, short-tenure pressure is typical of predatory/unregistered lending apps", "Only for loans under ₹5000", "Yes, if you agreed to the terms"],
+      ans: 1, topic: 'fraud7',
+      exp: "✅ Correct! Legitimate lenders offer reasonable, clearly disclosed repayment terms — extreme short deadlines with harsh penalties are a predatory tactic."
+    },
+    {
+      q: "What kind of app permission requests should make you suspicious of a lending app?",
+      opts: ["Requesting your PAN card only", "Requesting access to your contacts, SMS, gallery, and call logs", "Requesting your employment details", "Requesting your email address"],
+      ans: 1, topic: 'fraud7',
+      exp: "✅ Correct! Access to contacts, SMS, and photos has no genuine purpose for a loan and is typically misused later for harassment and blackmail."
+    },
+    {
+      q: "Someone in financial difficulty is considering an instant loan app but isn't sure about its RBI status. What should they check first?",
+      opts: ["Just proceed since they need the money now", "Look up the RBI's list of registered NBFCs, or check with the RBI's official Sachet portal, before installing", "Ask the app's own customer support", "Check only the number of downloads"],
+      ans: 1, topic: 'fraud7',
+      exp: "✅ Correct! RBI's Sachet portal and official NBFC list let you verify a lender's legitimacy independently, rather than relying on the app's own claims."
+    },
+    {
+      q: "An instant loan app threatened you but disappeared before you paid anything extra. What should your reporting steps be?",
+      opts: ["Nothing, since you didn't lose money", "Still report it to 1930 and cybercrime.gov.in — this helps authorities track and shut down such apps", "Wait to see if they come back", "Only report if you actually paid"],
+      ans: 1, topic: 'fraud7',
+      exp: "✅ Correct! Reporting predatory apps even without financial loss helps authorities build cases against them and protect future victims."
+    },
+    {
+      q: "What is the safest way to get a genuine personal loan quickly in India?",
+      opts: ["Any app promising 'instant approval, no documents'", "Through your own bank, an RBI-registered NBFC, or a verified digital lending platform listed with RBI", "Any app with a high rating on the app store", "Whichever app a friend forwarded on WhatsApp"],
+      ans: 1, topic: 'fraud7',
+      exp: "✅ Correct! Sticking to your bank or an RBI-registered NBFC avoids the hidden costs and harassment risks of unregistered instant-loan apps."
+    },
+  ],
+  fraud8: [ // Ponzi / crypto investment scams
+    {
       q: "A 'friend' shows you huge, guaranteed monthly returns from a new crypto investment app and urges you to invest quickly before it 'closes'. What should you suspect?",
       opts: ["A safe, high-return investment", "A Ponzi/crypto investment scam", "A government savings scheme", "A stock market IPO"],
-      ans: 1,
-      topic: 'fraud8',
+      ans: 1, topic: 'fraud8',
       exp: "✅ Correct! Guaranteed high returns and urgency to invest fast are classic red flags of a Ponzi or fake crypto investment scam."
+    },
+    {
+      q: "An investment WhatsApp/Telegram group promises '2% daily returns, guaranteed'. Is this realistic for any legitimate investment?",
+      opts: ["Yes, crypto can grow that fast", "No — no legitimate investment can guarantee such consistent daily returns; this is a hallmark of a scam", "Only if it's backed by a bank", "Yes, for the first month only"],
+      ans: 1, topic: 'fraud8',
+      exp: "✅ Correct! '2% daily' compounds to absurd, impossible annual returns — genuine markets simply don't work this way. This is a scam pattern."
+    },
+    {
+      q: "A scheme pays you more for recruiting new investors than for any actual trading or business profit. What type of scheme is this?",
+      opts: ["A mutual fund", "A Ponzi/pyramid scheme — it relies on new investors' money to pay earlier ones, not real profit", "A government bond", "A stock market index fund"],
+      ans: 1, topic: 'fraud8',
+      exp: "✅ Correct! When returns depend on recruiting others rather than genuine business activity, it's a Ponzi/pyramid structure that eventually collapses."
+    },
+    {
+      q: "An app shows your investment 'growing' every day on screen, but every time you try to withdraw, it says 'pending' or asks for another deposit first. What's happening?",
+      opts: ["A normal processing delay", "A classic scam tactic — the displayed growth is fake, and further deposits are demanded to keep you trapped", "A technical glitch that will resolve itself", "Your bank is blocking the withdrawal"],
+      ans: 1, topic: 'fraud8',
+      exp: "✅ Correct! Fake on-screen 'growth' combined with blocked withdrawals and demands for more money is a well-known crypto/investment scam pattern."
+    },
+    {
+      q: "A 'financial advisor' contacts you unsolicited on social media promising insider crypto tips for guaranteed profit. How much should you trust this?",
+      opts: ["Fully — insider tips are valuable", "Very little — unsolicited 'guaranteed profit' tips from strangers online are a common scam approach", "Trust it if they have many followers", "Trust it if they share screenshots of profits"],
+      ans: 1, topic: 'fraud8',
+      exp: "✅ Correct! No genuine financial advisor guarantees profits or reaches out unsolicited with 'insider tips' — this is a common scam recruitment method."
+    },
+    {
+      q: "What is a major warning sign that distinguishes a Ponzi scheme from a genuine investment?",
+      opts: ["It has a professional-looking app or website", "It promises guaranteed, unusually high returns with little or no risk explained", "It's recommended by a friend", "It accepts payments via UPI"],
+      ans: 1, topic: 'fraud8',
+      exp: "✅ Correct! All genuine investments carry risk and no guaranteed fixed high return — any scheme claiming otherwise should be treated as a red flag."
+    },
+    {
+      q: "You're asked to pay a 'tax' or 'unlocking fee' before you're allowed to withdraw your investment profits. Is this a legitimate requirement?",
+      opts: ["Yes, taxes must be paid before any withdrawal", "No — legitimate platforms deduct applicable taxes automatically; being asked to pay extra just to 'unlock' withdrawal is a scam tactic", "Only for foreign investments", "Only if the amount is very large"],
+      ans: 1, topic: 'fraud8',
+      exp: "✅ Correct! Genuine platforms never require you to pay an extra fee just to access your own money — this demand is designed to extract more money from victims."
+    },
+    {
+      q: "A scheme claims SEBI or RBI approval, but you can't find it listed on either regulator's official website. What should you do?",
+      opts: ["Trust the scheme's own claim", "Do not invest — always verify registration/approval directly on the regulator's official website, not just the scheme's claim", "Invest a small amount to test it", "Ask other investors if it's genuine"],
+      ans: 1, topic: 'fraud8',
+      exp: "✅ Correct! Regulatory approval claims must be independently verified on SEBI/RBI's own official websites — never take a scheme's word for it."
+    },
+    {
+      q: "Why do Ponzi schemes eventually collapse, leaving most investors with losses?",
+      opts: ["Because of unrelated market crashes", "Because payouts depend entirely on new investors' money, which eventually can't keep up with what's owed to earlier investors", "Because of government intervention only", "Because the app runs out of storage space"],
+      ans: 1, topic: 'fraud8',
+      exp: "✅ Correct! Since there's no real underlying profit, a Ponzi scheme needs an ever-growing stream of new money — it inevitably runs out and collapses."
+    },
+    {
+      q: "What should you always verify before putting money into any investment scheme?",
+      opts: ["Whether the app looks modern and trustworthy", "Its regulatory registration (SEBI/RBI), the realism of promised returns, and independent reviews outside the scheme's own materials", "Whether a friend has already invested", "Whether it accepts UPI payments"],
+      ans: 1, topic: 'fraud8',
+      exp: "✅ Correct! Independent verification of registration and realistic return expectations are essential before investing anywhere, especially schemes reached through social media or referrals."
+    },
+  ],
+  general: [ // General cyber-crime reporting (2 used per set)
+    {
+      q: "You lost money to a cyber fraud. What is the FIRST thing you should do?",
+      opts: ["Post about it on social media", "Call 1930 (Cyber Crime Helpline) immediately", "Wait and see if money comes back", "Change your UPI PIN"],
+      ans: 1, topic: null,
+      exp: "✅ Correct! Call 1930 immediately — it's the National Cyber Crime Helpline. Early reporting maximizes the chance of fund recovery."
     },
     {
       q: "Where can you file an official online complaint about a cyber financial fraud in India, besides calling 1930?",
       opts: ["cybercrime.gov.in", "Any random forwarded WhatsApp link", "A private recovery agent's website", "Your fraud's own customer care number"],
-      ans: 0,
-      topic: null,
+      ans: 0, topic: null,
       exp: "✅ Correct! cybercrime.gov.in is the official Government of India portal for reporting cyber crimes, alongside the 1930 helpline."
-    }
+    },
+    {
+      q: "Within what time window should you report a financial cyber fraud for the best chance of getting funds frozen or recovered?",
+      opts: ["Within a few months", "As soon as possible — ideally within the first few hours (the 'golden hour')", "Only after a week, to be sure it's really fraud", "It doesn't matter when you report"],
+      ans: 1, topic: null,
+      exp: "✅ Correct! The first few hours ('golden hour') are critical — banks can often freeze funds still sitting in the fraudster's account if reported quickly."
+    },
+    {
+      q: "What information should you keep ready before calling the 1930 cyber crime helpline?",
+      opts: ["Nothing, they don't need any details", "Transaction details, screenshots, the fraudster's UPI ID/number, and your bank account details", "Only your Aadhaar number", "Only the date of the fraud"],
+      ans: 1, topic: null,
+      exp: "✅ Correct! Having transaction IDs, screenshots, and the fraudster's details ready speeds up the complaint and improves recovery chances."
+    },
+    {
+      q: "Is the National Cyber Crime helpline 1930 available 24x7?",
+      opts: ["No, only on weekdays", "Yes, it operates round the clock", "Only during banking hours", "Only for amounts above ₹10,000"],
+      ans: 1, topic: null,
+      exp: "✅ Correct! 1930 is a 24x7 helpline specifically for reporting financial cyber fraud as quickly as possible."
+    },
+    {
+      q: "If your bank account is compromised, besides calling 1930, what should you immediately do with your bank?",
+      opts: ["Nothing, 1930 handles everything", "Call your bank to block/freeze the account or card and report the unauthorized transaction", "Close the account permanently", "Wait for the bank to notice on its own"],
+      ans: 1, topic: null,
+      exp: "✅ Correct! Directly alerting your bank to block the account/card alongside reporting to 1930 gives the best chance of stopping further loss."
+    },
+    {
+      q: "Someone found online offers to recover your lost fraud money for an upfront 'fee'. What should you do?",
+      opts: ["Pay the fee since they claim to be experts", "Avoid it — this is very often itself a secondary scam targeting fraud victims", "Pay only half upfront", "Trust it if they have a professional-looking website"],
+      ans: 1, topic: null,
+      exp: "✅ Correct! 'Recovery agents' demanding upfront fees are frequently scammers targeting people who've already been defrauded once."
+    },
+    {
+      q: "Where can you specifically report cyber crimes involving harassment of women and children in India?",
+      opts: ["There's no separate reporting option", "The dedicated section on cybercrime.gov.in for crimes against women/children, or 1930", "Only through a local newspaper", "Only via social media reporting tools"],
+      ans: 1, topic: null,
+      exp: "✅ Correct! cybercrime.gov.in has a dedicated reporting category for crimes against women and children, in addition to general cyber fraud reporting."
+    },
+    {
+      q: "What evidence should you preserve if you've been a victim of online fraud?",
+      opts: ["Nothing is needed once you've called the helpline", "Screenshots of chats/messages, transaction IDs, the fraudster's contact details, and any call recordings", "Only the amount lost", "Only your bank statement from that month"],
+      ans: 1, topic: null,
+      exp: "✅ Correct! Detailed evidence — screenshots, IDs, contact details — strengthens your complaint and helps investigators trace the fraud."
+    },
+    {
+      q: "True or false: You must visit a police station in person before you can file any cyber crime complaint in India.",
+      opts: ["True", "False — you can file online via cybercrime.gov.in or call 1930 first, without visiting in person", "True, only for amounts over ₹1 lakh", "True, unless it happened on a weekend"],
+      ans: 1, topic: null,
+      exp: "✅ Correct! Cyber crime complaints can be filed online through cybercrime.gov.in or by calling 1930, without needing to visit a police station first."
+    },
+    {
+      q: "What does the 1930 helpline specifically help try to do when you report quickly?",
+      opts: ["Cancel your bank account", "Coordinate with banks/wallets to freeze the fraudulent transaction's funds before they're withdrawn", "Send you a replacement debit card", "Block your mobile number"],
+      ans: 1, topic: null,
+      exp: "✅ Correct! 1930 works with banks and payment systems to try to freeze the money in the fraudster's account before it can be withdrawn."
+    },
+    {
+      q: "If money was deducted through fraud a few days ago, is it still worth reporting now?",
+      opts: ["No, it's too late to matter", "Yes — always report it; even delayed reports help investigations and may occasionally still lead to recovery", "Only if it happened today", "Only for amounts above ₹50,000"],
+      ans: 1, topic: null,
+      exp: "✅ Correct! While speed matters most, reporting is always worthwhile — it helps track patterns and can still occasionally lead to recovery or prevent further fraud on others."
+    },
+    {
+      q: "What's a good habit to build so you can report a fraud quickly if it ever happens to you?",
+      opts: ["Nothing specific is needed", "Save the 1930 helpline number and cybercrime.gov.in in your phone/bookmarks in advance", "Memorize your bank's entire policy manual", "Keep your UPI PIN written down somewhere accessible"],
+      ans: 1, topic: null,
+      exp: "✅ Correct! Having the helpline number and portal saved in advance means you can act within minutes instead of losing time searching for them during a stressful moment."
+    },
+    {
+      q: "What is the ideal first step immediately after realizing you clicked a suspicious phishing link, even if no money has been lost yet?",
+      opts: ["Ignore it since nothing happened yet", "Change your passwords/PINs for any account you may have exposed, and monitor your accounts closely", "Restart your phone and forget about it", "Wait to see if money disappears before acting"],
+      ans: 1, topic: null,
+      exp: "✅ Correct! Acting immediately — changing credentials and monitoring accounts — can prevent a phishing click from turning into actual financial loss."
+    },
+    {
+      q: "If you suspect your UPI app itself may be compromised, what's a good precaution alongside reporting to 1930?",
+      opts: ["Keep using it as normal", "Temporarily disable/uninstall the app and contact your bank to review recent transactions", "Only change your phone's lock screen password", "Nothing else is needed"],
+      ans: 1, topic: null,
+      exp: "✅ Correct! Disabling the potentially compromised app and having your bank review recent activity limits further damage while you report the incident."
+    },
+    {
+      q: "Should you delete screenshots and messages related to a scam after you've reported it?",
+      opts: ["Yes, to clear space on your phone", "No — keep all evidence safely until the case is resolved, as investigators may need it again", "Yes, once you've told the helpline what happened", "Only delete messages, keep screenshots"],
+      ans: 1, topic: null,
+      exp: "✅ Correct! Investigations can take time and may require the same evidence again — never delete scam-related evidence until the matter is fully resolved."
+    },
+    {
+      q: "Besides the cyber crime helpline, who else can genuinely help you understand your rights and next steps after being defrauded?",
+      opts: ["Only social media influencers", "Your bank's official grievance/nodal officer, and consumer protection channels like the RBI's Banking Ombudsman", "Any 'recovery expert' found via a Google ad", "No one else can help"],
+      ans: 1, topic: null,
+      exp: "✅ Correct! Your bank's grievance officer and the RBI's Banking Ombudsman are official channels that can genuinely help resolve disputes and clarify your rights."
+    },
+    {
+      q: "What is a reliable way to verify that cybercrime.gov.in is the genuine government portal before entering any details?",
+      opts: ["Search for it and click any top result", "Type the URL directly yourself (cybercrime.gov.in) rather than clicking a link sent to you", "Trust any site that mentions '1930' in its name", "Trust it if it looks official"],
+      ans: 1, topic: null,
+      exp: "✅ Correct! Always type official government portal addresses directly rather than clicking links from messages, which could lead to a fake look-alike site."
+    },
+    {
+      q: "After successfully reporting a fraud, what's a sensible next step for your own protection going forward?",
+      opts: ["Nothing further is needed", "Review and tighten your account security — update passwords, enable transaction alerts, and stay alert to similar scams", "Stop using digital payments altogether", "Share your experience only with the scammer to warn them off"],
+      ans: 1, topic: null,
+      exp: "✅ Correct! Strengthening your account security and staying alert afterward helps prevent repeat incidents, without needing to give up digital payments entirely."
+    },
+    {
+      q: "Which government ministry/body oversees CERT-In, which handles broader cyber security incidents in India beyond individual financial fraud?",
+      opts: ["Ministry of Electronics and Information Technology (MeitY)", "Ministry of Finance", "Reserve Bank of India only", "Election Commission of India"],
+      ans: 0, topic: null,
+      exp: "✅ Correct! CERT-In (Indian Computer Emergency Response Team) operates under MeitY and handles cyber security incidents at a national level, alongside 1930/cybercrime.gov.in for individual fraud complaints."
+    },
   ],
+};
+
+// Assembles the 10 fixed sets (8 fraud topics once each + 2 general
+// questions per set, in the same layout as the site's original quiz) from
+// the pools above. This is the entire question bank — nothing here is
+// generated, fetched, or produced by any AI/API call.
+const quizQuestionSetsEn = Array.from({ length: 10 }, (_, i) => [
+  enTopics.fraud3[i],
+  enTopics.fraud2[i],
+  enTopics.fraud4[i],
+  enTopics.fraud1[i],
+  enTopics.general[i * 2],
+  enTopics.fraud5[i],
+  enTopics.fraud6[i],
+  enTopics.fraud7[i],
+  enTopics.fraud8[i],
+  enTopics.general[i * 2 + 1],
+]);
+
+const fallbackQuestionsData = {
+  en: quizQuestionSetsEn[0],
   hi: [
     {
       q: "एक अनजान व्यक्ति WhatsApp पर QR कोड भेजता है और कहता है 'पैसे पाने के लिए स्कैन करें'। आप क्या करेंगे?",
@@ -889,8 +1464,7 @@ const fallbackQuestionsData = {
 
 let current = 0, score = 0, answered = false;
 let attemptTopicResults = []; // {topic, correct} for the question(s) answered in the current pass — used to report a finished quiz attempt to the dashboard
-let activeQuestions = []; // the question set actually in use for the current attempt (AI-generated, or a shuffled fallback copy)
-let quizLoading = false;
+let activeQuestions = []; // the question set actually in use for the current attempt (a shuffled copy of the current rotation set)
 
 function shuffleArray(arr) {
   const a = [...arr];
@@ -901,101 +1475,64 @@ function shuffleArray(arr) {
   return a;
 }
 
-// --- Recently-seen question tracking (per browser, per language) ---
-// The AI has no memory between calls, so to avoid repeats we remember the
-// text of questions this browser has already been shown and send that list
-// along with every generation request so Claude can actively avoid them.
-const RECENT_QUESTIONS_KEY = 'cybersafe_recent_quiz_questions';
-const RECENT_QUESTIONS_MAX = 40; // per language
+// --- Set rotation (per browser, per language) — no API/network involved ---
+// English has 10 fixed sets of 10 (quizQuestionSetsEn, defined above). Each
+// time the quiz starts, this reads which set index is "next" for this
+// browser from localStorage, hands that set out, and advances the pointer
+// (wrapping from set 9 back to set 0) — so a set only repeats once all 10
+// have been shown once. Hindi/Telugu currently have one static set each,
+// which is simply reshuffled on every attempt.
+const QUIZ_SET_INDEX_KEY = 'cybersafe_quiz_set_index_en';
 
-function getRecentQuestions(lang) {
+function getNextEnglishSetIndex() {
+  let idx = 0;
   try {
-    const raw = localStorage.getItem(RECENT_QUESTIONS_KEY);
-    if (!raw) return [];
-    const data = JSON.parse(raw);
-    return Array.isArray(data[lang]) ? data[lang] : [];
+    const stored = localStorage.getItem(QUIZ_SET_INDEX_KEY);
+    idx = stored !== null ? parseInt(stored, 10) : 0;
+    if (!Number.isInteger(idx) || idx < 0 || idx >= quizQuestionSetsEn.length) idx = 0;
   } catch (e) {
-    return []; // localStorage unavailable (private browsing etc.) — non-fatal
+    idx = 0; // localStorage unavailable (private browsing etc.) — non-fatal
   }
-}
-
-function rememberRecentQuestions(lang, questions) {
+  const nextIdx = (idx + 1) % quizQuestionSetsEn.length;
   try {
-    const raw = localStorage.getItem(RECENT_QUESTIONS_KEY);
-    const data = raw ? JSON.parse(raw) : {};
-    const existing = Array.isArray(data[lang]) ? data[lang] : [];
-    const combined = [...existing, ...questions.map((q) => q.q)];
-    const deduped = [...new Set(combined)];
-    data[lang] = deduped.slice(-RECENT_QUESTIONS_MAX);
-    localStorage.setItem(RECENT_QUESTIONS_KEY, JSON.stringify(data));
+    localStorage.setItem(QUIZ_SET_INDEX_KEY, String(nextIdx));
   } catch (e) {
-    // ignore — history tracking is best-effort, never blocks the quiz
+    // ignore — rotation just restarts from set 0 next time if storage fails
   }
+  return idx;
 }
 
-function loadingLabel() {
-  if (currentLang === 'hi') return 'नए प्रश्न लाए जा रहे हैं…';
-  if (currentLang === 'te') return 'కొత్త ప్రశ్నలు లోడ్ అవుతున్నాయి…';
-  return 'Loading new questions…';
-}
-
-// Fetches a fresh batch of AI-generated questions for the current
-// language, telling the AI which questions this browser has already seen
-// so it avoids repeating them. Falls back to a shuffled copy of the
-// built-in static bank if the AI call isn't configured, fails, or returns
-// something unusable — the quiz always works either way.
-async function fetchQuizQuestions(lang) {
-  try {
-    const recentQuestions = getRecentQuestions(lang);
-    const res = await fetch('/api/quiz/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lang, recentQuestions }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.source !== 'ai') {
-        // Fell back server-side (not configured / AI error / bad response).
-        // Surfacing this in the console makes misconfiguration easy to spot
-        // instead of silently looking like "the same quiz every time".
-        console.warn('Quiz: using built-in fallback questions —', data.source, data.status ? `(status ${data.status})` : '', data.detail || '');
-      }
-      if (Array.isArray(data.questions) && data.questions.length) {
-        rememberRecentQuestions(lang, data.questions);
-        return data.questions;
-      }
-    } else {
-      console.warn('Quiz: /api/quiz/generate returned HTTP', res.status);
-    }
-  } catch (e) {
-    console.warn('Quiz: /api/quiz/generate request failed —', e.message);
+// Returns the 10 questions for this attempt. No fetch, no AI, no API key —
+// this is pure local data plus the rotation logic above.
+function getQuizQuestions(lang) {
+  if (lang === 'en') {
+    return shuffleArray(quizQuestionSetsEn[getNextEnglishSetIndex()]);
   }
-  const fallback = fallbackQuestionsData[lang] || fallbackQuestionsData.en;
-  return shuffleArray(fallback);
+  const bank = fallbackQuestionsData[lang] || fallbackQuestionsData.en;
+  return shuffleArray(bank);
 }
 
-// Starts a brand-new quiz attempt: resets score/progress and fetches a
-// fresh batch of questions (new content every time, per the new AI flow).
-async function startNewQuizAttempt() {
-  if (quizLoading) return;
+// Starts a brand-new quiz attempt: resets score/progress and loads the
+// next set in rotation for the current language.
+function startNewQuizAttempt() {
   if (!document.getElementById('quiz-question')) return; // no quiz on this page (e.g. dashboard.html)
-  quizLoading = true;
   current = 0;
   score = 0;
   answered = false;
   attemptTopicResults = [];
 
-  const qEl = document.getElementById('quiz-question');
   const optsEl = document.getElementById('quiz-options');
   const fbEl = document.getElementById('quiz-feedback');
   const nextBtn = document.getElementById('quiz-next');
-  if (qEl) qEl.textContent = loadingLabel();
   if (optsEl) optsEl.innerHTML = '';
   if (fbEl) fbEl.textContent = '';
-  if (nextBtn) nextBtn.style.display = 'none';
+  if (nextBtn) {
+    nextBtn.style.display = 'none';
+    nextBtn.textContent = nextQuestionLabel();
+    nextBtn.onclick = nextQuestion; // restore normal "Next Question" behaviour (answer() swaps this to "Retake Quiz" only once the quiz is finished)
+  }
 
-  activeQuestions = await fetchQuizQuestions(currentLang);
-  quizLoading = false;
+  activeQuestions = getQuizQuestions(currentLang);
   loadQuestion();
 }
 
@@ -1055,12 +1592,24 @@ function answer(i) {
   const nextBtn = document.getElementById('quiz-next');
   nextBtn.style.display = 'inline-block';
   if (current >= activeQuestions.length - 1) {
-    nextBtn.textContent = `${finishedLabel()} ${score}/${activeQuestions.length} ✓`;
+    // Last question answered — clear everything else away and show ONLY
+    // the final score in the question area, plus a "Retake Quiz" button.
     submitQuizAttempt(score, activeQuestions.length);
+    const qEl = document.getElementById('quiz-question');
+    const optsEl = document.getElementById('quiz-options');
+    if (qEl) qEl.textContent = `${quizCompletedLabel()} ${scoreLabel()}: ${score} / ${activeQuestions.length}`;
+    if (optsEl) optsEl.innerHTML = ''; // no leftover question/options once finished
+    feedback.textContent = '';
+    nextBtn.textContent = retakeQuizLabel();
     nextBtn.onclick = () => {
-      nextBtn.textContent = nextQuestionLabel();
-      nextBtn.onclick = nextQuestion;
-      startNewQuizAttempt(); // fresh questions for the next attempt
+      // Simulate loading fresh questions for 5 seconds before the next set appears.
+      nextBtn.disabled = true;
+      nextBtn.style.display = 'none';
+      if (qEl) qEl.textContent = loadingLabel();
+      setTimeout(() => {
+        nextBtn.disabled = false;
+        startNewQuizAttempt();
+      }, 5000);
     };
   }
 }
@@ -1086,10 +1635,22 @@ function scoreLabel() {
   return 'Score';
 }
 
-function finishedLabel() {
-  if (currentLang === 'hi') return 'समाप्त!';
-  if (currentLang === 'te') return 'పూర్తి!';
-  return 'Finished!';
+function loadingLabel() {
+  if (currentLang === 'hi') return 'नए प्रश्न लाए जा रहे हैं…';
+  if (currentLang === 'te') return 'కొత్త ప్రశ్నలు లోడ్ అవుతున్నాయి…';
+  return 'Loading new questions…';
+}
+
+function quizCompletedLabel() {
+  if (currentLang === 'hi') return '🎉 क्विज़ पूर्ण हुआ!';
+  if (currentLang === 'te') return '🎉 క్విజ్ పూర్తయింది!';
+  return '🎉 Quiz Completed!';
+}
+
+function retakeQuizLabel() {
+  if (currentLang === 'hi') return '🔄 क्विज़ फिर से लें';
+  if (currentLang === 'te') return '🔄 క్విజ్ మళ్లీ చేయండి';
+  return '🔄 Retake Quiz';
 }
 
 function nextQuestionLabel() {

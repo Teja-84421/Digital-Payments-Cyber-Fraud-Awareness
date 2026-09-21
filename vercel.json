@@ -2,9 +2,6 @@
   "functions": {
     "api/auth/*.js": {
       "maxDuration": 20
-    },
-    "api/quiz/*.js": {
-      "maxDuration": 40
     }
   }
 }
